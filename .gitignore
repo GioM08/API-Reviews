@@ -1,0 +1,29 @@
+# --- Dependencias ---
+**/node_modules/
+
+# --- Variables de Entorno y Secretos ---
+# Ignora todos los .env en cualquier nivel
+**/.env
+**/.env.*
+!**/.env.example
+
+# Ignora las carpetas de llaves/certificados
+**/keys/*.pem
+**/keys/*.key
+**/keys/*.pub
+
+# --- Compilación y Build ---
+**/dist/
+**/build/
+
+# --- Logs ---
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Archivos de Sistema ---
+.DS_Store
+Thumbs.db
+.vscode/
