@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const { signToken } = require("../utils/jwt.util.js");
 const { publishUserCreated } = require("../utils/broker.util.js");
 
-const register = async ({ email, password }) => {
+const register = async ({ email, password }, role = "user") => {
   const exists = await Auth.findOne({ email });
   if (exists) throw new Error("Usuario ya existe");
 
@@ -12,6 +12,7 @@ const register = async ({ email, password }) => {
   const user = await Auth.create({
     email,
     password: hashed,
+    role,
   });
 
   await publishUserCreated({
