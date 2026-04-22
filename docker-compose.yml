@@ -119,6 +119,7 @@ services:
     build: ./media-service
     ports:
       - "50051:50051"
+      - "3005:3005"
     env_file:
       - ./media-service/.env
     depends_on:

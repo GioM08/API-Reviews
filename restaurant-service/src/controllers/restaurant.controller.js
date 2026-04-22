@@ -1,5 +1,5 @@
 const service = require('../services/restaurant.service');
-const { CATEGORY_MAP } = require('../utils/overpass.util');
+const { CATEGORY_MAP } = require('../utils/google-places.util');
 
 const healthCheck = (req, res) => {
   res.json({ status: 'ok' });
@@ -37,8 +37,19 @@ const getRestaurantById = async (req, res) => {
   }
 };
 
+// Redirige a la foto del lugar. La URL se cachea en DB tras la primera solicitud.
+const getRestaurantPhoto = async (req, res) => {
+  try {
+    const photoUrl = await service.getRestaurantPhotoUrl(req.params.id);
+    if (!photoUrl) return res.status(404).json({ error: 'Foto no disponible' });
+    res.redirect(photoUrl);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 const getCategories = (req, res) => {
   res.json(Object.values(CATEGORY_MAP));
 };
 
-module.exports = { healthCheck, getRestaurants, getRestaurantById, getCategories };
+module.exports = { healthCheck, getRestaurants, getRestaurantById, getRestaurantPhoto, getCategories };

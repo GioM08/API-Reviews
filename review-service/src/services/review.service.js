@@ -1,6 +1,27 @@
 const { pool } = require('../config/db');
 const { publishReviewCreated } = require('../utils/broker.util');
 
+const enrichWithUsers = async (reviews) => {
+  if (reviews.length === 0) return reviews;
+  const ids = [...new Set(reviews.map((r) => r.user_id))];
+  try {
+    const res = await fetch(`${process.env.USER_SERVICE_URL}/api/users/internal/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) return reviews;
+    const usersMap = await res.json();
+    return reviews.map((r) => ({
+      ...r,
+      user_name: usersMap[r.user_id]?.name || '',
+      user_avatar: usersMap[r.user_id]?.avatar || '',
+    }));
+  } catch {
+    return reviews;
+  }
+};
+
 const storeRestaurant = async (restaurantData) => {
   await pool.query(
     `INSERT INTO restaurants (id, name) VALUES ($1, $2)
@@ -60,7 +81,7 @@ const getReviews = async ({ restaurantId, userId }) => {
      ORDER BY r.created_at DESC`,
     params
   );
-  return result.rows;
+  return enrichWithUsers(result.rows);
 };
 
 const addVote = async (reviewId, userId, voteType) => {

@@ -22,7 +22,22 @@ const updateMyProfile = async (req, res) => {
   }
 };
 
+const getUsersBatch = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.json({});
+
+    const users = await User.find({ authId: { $in: ids } }, 'authId name avatar');
+    const map = {};
+    for (const u of users) map[u.authId] = { name: u.name, avatar: u.avatar };
+    res.json(map);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getMyProfile,
-  updateMyProfile
+  updateMyProfile,
+  getUsersBatch,
 };
