@@ -1,5 +1,5 @@
 const { pool } = require('../config/db');
-const { publishReviewCreated } = require('../utils/broker.util');
+const { publishReviewCreated, publishInteractionEvent } = require('../utils/broker.util');
 
 const enrichWithUsers = async (reviews) => {
   if (reviews.length === 0) return reviews;
@@ -22,6 +22,21 @@ const enrichWithUsers = async (reviews) => {
   }
 };
 
+const getUsername = async (userId) => {
+  try {
+    const res = await fetch(`${process.env.USER_SERVICE_URL}/api/users/internal/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [userId] }),
+    });
+    if (!res.ok) return 'Alguien';
+    const map = await res.json();
+    return map[userId]?.name || 'Alguien';
+  } catch {
+    return 'Alguien';
+  }
+};
+
 const storeRestaurant = async (restaurantData) => {
   await pool.query(
     `INSERT INTO restaurants (id, name) VALUES ($1, $2)
@@ -30,16 +45,28 @@ const storeRestaurant = async (restaurantData) => {
   );
 };
 
-const createReview = async ({ restaurantId, stars, comment, media = [] }, userId) => {
+const createReview = async ({ restaurantId, stars, comment, context = {}, planId = null, media = [] }, userId) => {
   const restaurantExists = await pool.query(
     'SELECT id FROM restaurants WHERE id = $1',
     [restaurantId]
   );
   if (restaurantExists.rows.length === 0) throw new Error('Restaurante no encontrado');
 
+  const recentReview = await pool.query(
+    `SELECT id FROM reviews
+     WHERE user_id = $1 AND restaurant_id = $2
+       AND created_at > NOW() - INTERVAL '7 days'
+     LIMIT 1`,
+    [userId, restaurantId]
+  );
+  if (recentReview.rows.length > 0) {
+    throw new Error('Solo puedes reseñar este restaurante una vez por semana');
+  }
+
   const result = await pool.query(
-    'INSERT INTO reviews (restaurant_id, user_id, stars, comment) VALUES ($1, $2, $3, $4) RETURNING *',
-    [restaurantId, userId, stars, comment || '']
+    `INSERT INTO reviews (restaurant_id, user_id, stars, comment, context, plan_id)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [restaurantId, userId, stars, comment || '', JSON.stringify(context), planId]
   );
   const review = result.rows[0];
 
@@ -52,12 +79,36 @@ const createReview = async ({ restaurantId, stars, comment, media = [] }, userId
     savedMedia.push(mediaResult.rows[0]);
   }
 
-  await publishReviewCreated({ restaurantId, stars, userId, reviewId: review.id });
+  await publishReviewCreated({ restaurantId, stars, userId, reviewId: review.id, context });
 
   return { ...review, media: savedMedia };
 };
 
-const getReviews = async ({ restaurantId, userId }) => {
+const getSegmentedScores = async (restaurantId) => {
+  const result = await pool.query(
+    `SELECT
+       context->>'moment'  AS moment,
+       context->>'company' AS company,
+       context->>'when'    AS "when",
+       context->>'price_range' AS price_range,
+       ROUND(AVG(stars), 1) AS avg_score,
+       COUNT(*)::int        AS review_count
+     FROM reviews
+     WHERE restaurant_id = $1
+       AND hidden = FALSE
+       AND context != '{}'
+     GROUP BY
+       context->>'moment',
+       context->>'company',
+       context->>'when',
+       context->>'price_range'
+     ORDER BY review_count DESC`,
+    [restaurantId]
+  );
+  return result.rows;
+};
+
+const getReviews = async ({ restaurantId, userId }, viewerId = null) => {
   const conditions = ['r.hidden = FALSE'];
   const params = [];
 
@@ -71,13 +122,30 @@ const getReviews = async ({ restaurantId, userId }) => {
   }
 
   const where = conditions.join(' AND ');
+
+  let viewerJoins = '';
+  let viewerSelect = `NULL::varchar AS user_vote, FALSE AS liked`;
+  let viewerGroup = '';
+
+  if (viewerId) {
+    params.push(viewerId);
+    const p = `$${params.length}`;
+    viewerJoins = `
+      LEFT JOIN votes v  ON v.review_id  = r.id AND v.user_id = ${p}
+      LEFT JOIN likes lk ON lk.review_id = r.id AND lk.user_id = ${p}`;
+    viewerSelect = `v.vote_type AS user_vote, (lk.user_id IS NOT NULL) AS liked`;
+    viewerGroup  = `, v.vote_type, lk.user_id`;
+  }
+
   const result = await pool.query(
     `SELECT r.*,
-       COALESCE(json_agg(rm.*) FILTER (WHERE rm.id IS NOT NULL), '[]') AS media
+       COALESCE(json_agg(rm.*) FILTER (WHERE rm.id IS NOT NULL), '[]') AS media,
+       ${viewerSelect}
      FROM reviews r
      LEFT JOIN review_media rm ON rm.review_id = r.id
+     ${viewerJoins}
      WHERE ${where}
-     GROUP BY r.id
+     GROUP BY r.id${viewerGroup}
      ORDER BY r.created_at DESC`,
     params
   );
@@ -127,7 +195,16 @@ const addVote = async (reviewId, userId, voteType) => {
 
     await client.query('COMMIT');
     const review = await client.query('SELECT * FROM reviews WHERE id = $1', [reviewId]);
-    return review.rows[0];
+    const row = review.rows[0];
+
+    const isNewUpvote = existingVote.rows.length === 0 && voteType === 'up';
+    if (isNewUpvote && userId !== row.user_id) {
+      getUsername(userId).then((actorName) =>
+        publishInteractionEvent('review_upvoted', { reviewId, ownerId: row.user_id, actorId: userId, actorName, restaurantId: row.restaurant_id })
+      ).catch(() => {});
+    }
+
+    return row;
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -171,11 +248,116 @@ const deleteReview = async (reviewId) => {
   if (result.rows.length === 0) throw new Error('Reseña no encontrada');
 };
 
+const toggleLike = async (reviewId, userId) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const existing = await client.query(
+      'SELECT id FROM likes WHERE review_id = $1 AND user_id = $2',
+      [reviewId, userId]
+    );
+
+    let liked;
+    if (existing.rows.length > 0) {
+      await client.query('DELETE FROM likes WHERE review_id = $1 AND user_id = $2', [reviewId, userId]);
+      await client.query('UPDATE reviews SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = $1', [reviewId]);
+      liked = false;
+    } else {
+      await client.query('INSERT INTO likes (review_id, user_id) VALUES ($1, $2)', [reviewId, userId]);
+      await client.query('UPDATE reviews SET likes_count = likes_count + 1 WHERE id = $1', [reviewId]);
+      liked = true;
+    }
+
+    await client.query('COMMIT');
+    const review = await client.query('SELECT user_id, restaurant_id, likes_count FROM reviews WHERE id = $1', [reviewId]);
+    const { user_id: ownerId, restaurant_id: restaurantId, likes_count } = review.rows[0];
+
+    if (liked && userId !== ownerId) {
+      getUsername(userId).then((actorName) =>
+        publishInteractionEvent('review_liked', { reviewId, ownerId, actorId: userId, actorName, restaurantId })
+      ).catch(() => {});
+    }
+
+    return { liked, likes_count };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+};
+
+const getComments = async (reviewId) => {
+  const result = await pool.query(
+    `SELECT c.*, '' AS user_name, '' AS user_avatar
+     FROM comments c
+     WHERE c.review_id = $1
+     ORDER BY c.created_at ASC`,
+    [reviewId]
+  );
+  const comments = result.rows;
+  if (comments.length === 0) return comments;
+
+  const ids = [...new Set(comments.map((c) => c.user_id))];
+  try {
+    const res = await fetch(`${process.env.USER_SERVICE_URL}/api/users/internal/batch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    if (!res.ok) return comments;
+    const usersMap = await res.json();
+    return comments.map((c) => ({
+      ...c,
+      user_name: usersMap[c.user_id]?.name || '',
+      user_avatar: usersMap[c.user_id]?.avatar || '',
+    }));
+  } catch {
+    return comments;
+  }
+};
+
+const addComment = async (reviewId, userId, text) => {
+  const reviewExists = await pool.query(
+    'SELECT id, user_id, restaurant_id FROM reviews WHERE id = $1 AND hidden = FALSE',
+    [reviewId]
+  );
+  if (reviewExists.rows.length === 0) throw new Error('Reseña no encontrada');
+
+  const result = await pool.query(
+    'INSERT INTO comments (review_id, user_id, text) VALUES ($1, $2, $3) RETURNING *',
+    [reviewId, userId, text]
+  );
+
+  const { user_id: ownerId, restaurant_id: restaurantId } = reviewExists.rows[0];
+  if (userId !== ownerId) {
+    getUsername(userId).then((actorName) =>
+      publishInteractionEvent('review_commented', { reviewId, ownerId, actorId: userId, actorName, restaurantId, text })
+    ).catch(() => {});
+  }
+
+  return result.rows[0];
+};
+
+const deleteComment = async (commentId, userId) => {
+  const result = await pool.query(
+    'DELETE FROM comments WHERE id = $1 AND user_id = $2 RETURNING id',
+    [commentId, userId]
+  );
+  if (result.rows.length === 0) throw new Error('Comentario no encontrado o no tienes permiso');
+};
+
 module.exports = {
   storeRestaurant,
   createReview,
   getReviews,
+  getSegmentedScores,
   addVote,
+  toggleLike,
+  getComments,
+  addComment,
+  deleteComment,
   reportReview,
   getReportedReviews,
   hideReview,

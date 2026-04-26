@@ -36,8 +36,22 @@ const getUsersBatch = async (req, res) => {
   }
 };
 
+const getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findOne(
+      { authId: req.params.id },
+      'authId name avatar bio createdAt'
+    );
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getMyProfile,
   updateMyProfile,
   getUsersBatch,
+  getPublicProfile,
 };

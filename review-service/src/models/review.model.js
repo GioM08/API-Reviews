@@ -15,6 +15,8 @@ const createTables = async () => {
       user_id VARCHAR(255) NOT NULL,
       stars INTEGER NOT NULL CHECK (stars >= 1 AND stars <= 5),
       comment TEXT DEFAULT '',
+      context JSONB DEFAULT '{}',
+      plan_id VARCHAR(255) DEFAULT NULL,
       upvotes INTEGER DEFAULT 0,
       downvotes INTEGER DEFAULT 0,
       hidden BOOLEAN DEFAULT FALSE,
@@ -54,8 +56,30 @@ const createTables = async () => {
     )
   `);
 
-  // Por si las tablas ya existían sin las columnas nuevas
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS likes (
+      id SERIAL PRIMARY KEY,
+      review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+      user_id VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE (review_id, user_id)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+      user_id VARCHAR(255) NOT NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS context JSONB DEFAULT '{}'`);
+  await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS plan_id VARCHAR(255) DEFAULT NULL`);
+  await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
 };
 
 module.exports = { createTables };

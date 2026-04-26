@@ -7,10 +7,19 @@ const mediaItemSchema = z.object({
   filename: z.string().optional(),
 });
 
+const contextSchema = z.object({
+  moment: z.enum(['breakfast', 'lunch', 'dinner']).optional(),
+  company: z.enum(['alone', 'couple', 'family', 'friends', 'work']).optional(),
+  when: z.enum(['weekday', 'weekend']).optional(),
+  price_range: z.enum(['0-50', '50-100', '100-200', '200+']).optional(),
+}).optional().default({});
+
 const createSchema = z.object({
   restaurantId: z.number().int().positive('El restaurantId debe ser un número positivo'),
   stars: z.number().int().min(1).max(5, 'Las estrellas deben estar entre 1 y 5'),
   comment: z.string().optional(),
+  context: contextSchema,
+  planId: z.string().optional().nullable(),
   media: z.array(mediaItemSchema).optional().default([]),
 });
 
@@ -40,12 +49,13 @@ const getReviews = async (req, res) => {
   try {
     const restaurantId = req.query.restaurantId ? parseInt(req.query.restaurantId) : null;
     const userId = req.query.userId || null;
+    const viewerId = req.user?.id || null;
 
     if (!restaurantId && !userId) {
       return res.status(400).json({ error: 'Se requiere restaurantId o userId' });
     }
 
-    const reviews = await service.getReviews({ restaurantId, userId });
+    const reviews = await service.getReviews({ restaurantId, userId }, viewerId);
     res.json(reviews);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -104,13 +114,74 @@ const deleteReview = async (req, res) => {
   }
 };
 
+const getSegmentedScores = async (req, res) => {
+  try {
+    const restaurantId = parseInt(req.params.id);
+    if (isNaN(restaurantId)) return res.status(400).json({ error: 'restaurantId inválido' });
+    const scores = await service.getSegmentedScores(restaurantId);
+    res.json(scores);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
+const toggleLike = async (req, res) => {
+  try {
+    const reviewId = parseInt(req.params.id);
+    const result = await service.toggleLike(reviewId, req.user.id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const commentSchema = z.object({
+  text: z.string().min(1, 'El comentario no puede estar vacío').max(500),
+});
+
+const getComments = async (req, res) => {
+  try {
+    const reviewId = parseInt(req.params.id);
+    const comments = await service.getComments(reviewId);
+    res.json(comments);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
+const addComment = async (req, res) => {
+  try {
+    const { text } = commentSchema.parse(req.body);
+    const reviewId = parseInt(req.params.id);
+    const comment = await service.addComment(reviewId, req.user.id, text);
+    res.status(201).json(comment);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const deleteComment = async (req, res) => {
+  try {
+    const commentId = parseInt(req.params.commentId);
+    await service.deleteComment(commentId, req.user.id);
+    res.json({ message: 'Comentario eliminado' });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
 module.exports = {
   healthCheck,
   createReview,
   getReviews,
+  getSegmentedScores,
   voteReview,
   reportReview,
   getReportedReviews,
   hideReview,
   deleteReview,
+  toggleLike,
+  getComments,
+  addComment,
+  deleteComment,
 };
