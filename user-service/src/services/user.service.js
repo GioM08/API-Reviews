@@ -25,7 +25,7 @@ const updateProfile = async (authId, updateData) => {
   return await User.findOneAndUpdate(
     { authId },
     { name, bio, avatar },
-    { new: true }
+    { returnDocument: "after" }
   );
 };
 
