@@ -80,6 +80,8 @@ const createTables = async () => {
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS context JSONB DEFAULT '{}'`);
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS plan_id VARCHAR(255) DEFAULT NULL`);
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
+  await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS detailed_ratings JSONB DEFAULT NULL`);
+  await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS amenities JSONB DEFAULT '[]'`);
 };
 
 module.exports = { createTables };

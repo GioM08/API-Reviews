@@ -136,10 +136,21 @@ const updateScore = async (restaurantId, newStars) => {
   );
 };
 
+const updateRestaurantStats = async (restaurantId, detailedRatingsAvg, amenitiesStats) => {
+  await pool.query(
+    `UPDATE restaurants
+     SET detailed_ratings_avg = $1::jsonb,
+         amenities_stats      = $2::jsonb
+     WHERE id = $3`,
+    [JSON.stringify(detailedRatingsAvg), JSON.stringify(amenitiesStats), restaurantId]
+  );
+};
+
 module.exports = {
   getNearbyRestaurants,
   getRestaurants,
   getRestaurantById,
   getRestaurantPhotoUrl,
   updateScore,
+  updateRestaurantStats,
 };

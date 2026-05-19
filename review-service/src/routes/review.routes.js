@@ -1,6 +1,6 @@
 const express = require('express');
 const {
-  healthCheck, createReview, getReviews, getSegmentedScores,
+  healthCheck, createReview, getReviews, getRestaurantStats, getSegmentedScores,
   voteReview, reportReview, getReportedReviews, hideReview, deleteReview,
   toggleLike, getComments, addComment, deleteComment,
 } = require('../controllers/review.controller');
@@ -22,6 +22,39 @@ const router = express.Router();
  *         description: El servicio está en funcionamiento
  */
 router.get('/health', healthCheck);
+
+/**
+ * @openapi
+ * /api/reviews/restaurant/{id}/stats:
+ *   get:
+ *     summary: Devuelve detailed_ratings_avg y amenities_stats de un restaurante
+ *     tags:
+ *       - Servicio de reseñas
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del restaurante
+ *     responses:
+ *       200:
+ *         description: Estadísticas calculadas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 detailed_ratings_avg:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: number
+ *                 amenities_stats:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: number
+ */
+router.get('/restaurant/:id/stats', getRestaurantStats);
 
 // Scores segmentados por contexto
 /**

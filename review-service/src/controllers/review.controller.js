@@ -16,12 +16,17 @@ const contextSchema = z.object({
 
 const createSchema = z.object({
   restaurantId: z.number().int().positive('El restaurantId debe ser un número positivo'),
-  stars: z.number().int().min(1).max(5, 'Las estrellas deben estar entre 1 y 5'),
+  stars: z.number().int().min(1).max(5, 'Las estrellas deben estar entre 1 y 5').optional(),
   comment: z.string().optional(),
   context: contextSchema,
   planId: z.string().optional().nullable(),
   media: z.array(mediaItemSchema).optional().default([]),
-});
+  detailed_ratings: z.record(z.string(), z.number().int().min(1).max(5)).optional(),
+  amenities: z.array(z.string()).optional().default([]),
+}).refine(
+  (d) => d.stars !== undefined || (d.detailed_ratings && Object.keys(d.detailed_ratings).length > 0),
+  { message: 'Se requiere stars o detailed_ratings' }
+);
 
 const voteSchema = z.object({
   voteType: z.enum(['up', 'down'], { error: 'El voto debe ser "up" o "down"' }),
@@ -114,6 +119,17 @@ const deleteReview = async (req, res) => {
   }
 };
 
+const getRestaurantStats = async (req, res) => {
+  try {
+    const restaurantId = parseInt(req.params.id);
+    if (isNaN(restaurantId)) return res.status(400).json({ error: 'restaurantId inválido' });
+    const stats = await service.computeRestaurantStats(restaurantId);
+    res.json(stats);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 const getSegmentedScores = async (req, res) => {
   try {
     const restaurantId = parseInt(req.params.id);
@@ -174,6 +190,7 @@ module.exports = {
   healthCheck,
   createReview,
   getReviews,
+  getRestaurantStats,
   getSegmentedScores,
   voteReview,
   reportReview,

@@ -12,6 +12,21 @@ const createSchema = z.object({
   }).optional().default({}),
 });
 
+const updateDateSchema = z.object({
+  proposedDate: z.string().refine((d) => !isNaN(Date.parse(d)), 'Fecha inválida'),
+});
+
+const inviteSchema = z.object({
+  participantIds: z.array(z.string()).min(1, 'Debes invitar al menos un amigo'),
+});
+
+const handle412 = (e, res) => {
+  if (e instanceof service.ETagMismatchError) {
+    return res.status(412).json({ error: e.message });
+  }
+  return null;
+};
+
 const createPlan = async (req, res) => {
   try {
     const data = createSchema.parse(req.body);
@@ -22,29 +37,89 @@ const createPlan = async (req, res) => {
   }
 };
 
-const acceptPlan = async (req, res) => {
+const getPlanById = async (req, res) => {
   try {
-    const plan = await service.respondToPlan(req.params.id, req.user.id, 'accepted');
+    const plan = await service.getPlanById(req.params.id, req.user.id);
+    res.set('ETag', service.getETag(plan));
     res.json(plan);
   } catch (e) {
+    res.status(404).json({ error: e.message });
+  }
+};
+
+const acceptPlan = async (req, res) => {
+  try {
+    const etag = req.headers['if-match'];
+    const plan = await service.respondToPlan(req.params.id, req.user.id, 'accepted', etag);
+    res.set('ETag', service.getETag(plan));
+    res.json(plan);
+  } catch (e) {
+    if (handle412(e, res)) return;
     res.status(400).json({ error: e.message });
   }
 };
 
 const rejectPlan = async (req, res) => {
   try {
-    const plan = await service.respondToPlan(req.params.id, req.user.id, 'rejected');
+    const etag = req.headers['if-match'];
+    const plan = await service.respondToPlan(req.params.id, req.user.id, 'rejected', etag);
+    res.set('ETag', service.getETag(plan));
     res.json(plan);
   } catch (e) {
+    if (handle412(e, res)) return;
     res.status(400).json({ error: e.message });
   }
 };
 
 const completePlan = async (req, res) => {
   try {
-    const plan = await service.completePlan(req.params.id, req.user.id);
+    const etag = req.headers['if-match'];
+    const plan = await service.completePlan(req.params.id, req.user.id, etag);
+    res.set('ETag', service.getETag(plan));
     res.json(plan);
   } catch (e) {
+    if (handle412(e, res)) return;
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const updatePlanDate = async (req, res) => {
+  try {
+    const { proposedDate } = updateDateSchema.parse(req.body);
+    const etag = req.headers['if-match'];
+    const plan = await service.updatePlanDate(req.params.id, req.user.id, proposedDate, etag);
+    res.set('ETag', service.getETag(plan));
+    res.json(plan);
+  } catch (e) {
+    if (handle412(e, res)) return;
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const inviteParticipants = async (req, res) => {
+  try {
+    const { participantIds } = inviteSchema.parse(req.body);
+    const plan = await service.inviteParticipants(req.params.id, req.user.id, participantIds);
+    res.set('ETag', service.getETag(plan));
+    res.json(plan);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const removeParticipant = async (req, res) => {
+  try {
+    const etag = req.headers['if-match'];
+    const plan = await service.removeParticipant(
+      req.params.id,
+      req.user.id,
+      req.params.userId,
+      etag,
+    );
+    res.set('ETag', service.getETag(plan));
+    res.json(plan);
+  } catch (e) {
+    if (handle412(e, res)) return;
     res.status(400).json({ error: e.message });
   }
 };
@@ -58,20 +133,14 @@ const getMyPlans = async (req, res) => {
   }
 };
 
-const getPlanById = async (req, res) => {
-  try {
-    const plan = await service.getPlanById(req.params.id, req.user.id);
-    res.json(plan);
-  } catch (e) {
-    res.status(404).json({ error: e.message });
-  }
-};
-
 module.exports = {
   createPlan,
+  getPlanById,
   acceptPlan,
   rejectPlan,
   completePlan,
+  updatePlanDate,
+  inviteParticipants,
+  removeParticipant,
   getMyPlans,
-  getPlanById,
 };

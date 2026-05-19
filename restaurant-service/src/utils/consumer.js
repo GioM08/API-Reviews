@@ -1,5 +1,5 @@
 const amqp = require('amqplib');
-const { updateScore } = require('../services/restaurant.service');
+const { updateScore, updateRestaurantStats } = require('../services/restaurant.service');
 
 const consumeReviewCreated = async () => {
   let connection;
@@ -23,7 +23,14 @@ const consumeReviewCreated = async () => {
         try {
           const reviewData = JSON.parse(msg.content.toString());
           await updateScore(reviewData.restaurantId, reviewData.stars);
-          console.log(` [v] Score actualizado para restaurante ${reviewData.restaurantId}`);
+          if (reviewData.detailed_ratings_avg !== undefined) {
+            await updateRestaurantStats(
+              reviewData.restaurantId,
+              reviewData.detailed_ratings_avg,
+              reviewData.amenities_stats,
+            );
+          }
+          console.log(` [v] Score y stats actualizados para restaurante ${reviewData.restaurantId}`);
           channel.ack(msg);
         } catch (err) {
           console.error(' [!] Error actualizando score:', err.message);

@@ -36,6 +36,8 @@ const createTable = async () => {
     `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS opening_hours   JSONB`,
     `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS google_rating   DECIMAL(3,2)`,
     `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS details_fetched BOOLEAN DEFAULT FALSE`,
+    `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS detailed_ratings_avg JSONB DEFAULT '{}'`,
+    `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS amenities_stats      JSONB DEFAULT '{}'`,
   ];
 
   for (const sql of migrations) {

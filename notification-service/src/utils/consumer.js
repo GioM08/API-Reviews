@@ -56,6 +56,19 @@ const HANDLERS = {
       data: { planId: payload.planId, restaurantId: payload.restaurantId },
     })),
 
+  plan_date_changed: (payload) => {
+    const dateStr = new Date(payload.proposedDate).toLocaleDateString('es-ES', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    });
+    return (payload.recipientIds || []).map((uid) => ({
+      userId: uid,
+      type: 'plan_date_changed',
+      title: 'Fecha de quedada actualizada',
+      body: `${payload.callerName || 'Alguien'} propuso una nueva fecha: ${dateStr}.`,
+      data: { planId: payload.planId, newDate: payload.proposedDate },
+    }));
+  },
+
   // ── Interacciones en reseñas — actorName ya viene en el payload ──
   review_liked: (payload) => [{
     userId: payload.ownerId,

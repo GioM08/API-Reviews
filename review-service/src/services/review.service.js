@@ -45,7 +45,49 @@ const storeRestaurant = async (restaurantData) => {
   );
 };
 
-const createReview = async ({ restaurantId, stars, comment, context = {}, planId = null, media = [] }, userId) => {
+const computeRestaurantStats = async (restaurantId) => {
+  const result = await pool.query(
+    `SELECT detailed_ratings, amenities
+     FROM reviews
+     WHERE restaurant_id = $1 AND hidden = FALSE`,
+    [restaurantId]
+  );
+
+  const total = result.rows.length;
+  if (total === 0) return { detailed_ratings_avg: {}, amenities_stats: {} };
+
+  const ratingTotals = {};
+  const ratingCounts = {};
+  for (const row of result.rows) {
+    if (row.detailed_ratings) {
+      for (const [key, val] of Object.entries(row.detailed_ratings)) {
+        ratingTotals[key] = (ratingTotals[key] || 0) + Number(val);
+        ratingCounts[key] = (ratingCounts[key] || 0) + 1;
+      }
+    }
+  }
+  const detailed_ratings_avg = {};
+  for (const key of Object.keys(ratingTotals)) {
+    detailed_ratings_avg[key] = Math.round((ratingTotals[key] / ratingCounts[key]) * 10) / 10;
+  }
+
+  const amenityCounts = {};
+  for (const row of result.rows) {
+    if (Array.isArray(row.amenities)) {
+      for (const amenity of row.amenities) {
+        amenityCounts[amenity] = (amenityCounts[amenity] || 0) + 1;
+      }
+    }
+  }
+  const amenities_stats = {};
+  for (const [key, count] of Object.entries(amenityCounts)) {
+    amenities_stats[key] = Math.round((count / total) * 100) / 100;
+  }
+
+  return { detailed_ratings_avg, amenities_stats };
+};
+
+const createReview = async ({ restaurantId, stars, comment, context = {}, planId = null, media = [], detailed_ratings, amenities = [] }, userId) => {
   const restaurantExists = await pool.query(
     'SELECT id FROM restaurants WHERE id = $1',
     [restaurantId]
@@ -63,10 +105,21 @@ const createReview = async ({ restaurantId, stars, comment, context = {}, planId
     throw new Error('Solo puedes reseñar este restaurante una vez por semana');
   }
 
+  let finalStars = stars;
+  if (detailed_ratings && Object.keys(detailed_ratings).length > 0) {
+    const vals = Object.values(detailed_ratings).map(Number);
+    finalStars = Math.min(5, Math.max(1, Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)));
+  }
+
   const result = await pool.query(
-    `INSERT INTO reviews (restaurant_id, user_id, stars, comment, context, plan_id)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [restaurantId, userId, stars, comment || '', JSON.stringify(context), planId]
+    `INSERT INTO reviews (restaurant_id, user_id, stars, comment, context, plan_id, detailed_ratings, amenities)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+    [
+      restaurantId, userId, finalStars, comment || '',
+      JSON.stringify(context), planId,
+      detailed_ratings ? JSON.stringify(detailed_ratings) : null,
+      JSON.stringify(amenities),
+    ]
   );
   const review = result.rows[0];
 
@@ -79,7 +132,12 @@ const createReview = async ({ restaurantId, stars, comment, context = {}, planId
     savedMedia.push(mediaResult.rows[0]);
   }
 
-  await publishReviewCreated({ restaurantId, stars, userId, reviewId: review.id, context });
+  const stats = await computeRestaurantStats(restaurantId);
+  await publishReviewCreated({
+    restaurantId, stars: finalStars, userId, reviewId: review.id, context,
+    detailed_ratings_avg: stats.detailed_ratings_avg,
+    amenities_stats: stats.amenities_stats,
+  });
 
   return { ...review, media: savedMedia };
 };
@@ -353,6 +411,7 @@ module.exports = {
   createReview,
   getReviews,
   getSegmentedScores,
+  computeRestaurantStats,
   addVote,
   toggleLike,
   getComments,
