@@ -4,7 +4,9 @@ const authSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
@@ -13,6 +15,27 @@ const authSchema = new mongoose.Schema({
   role: {
     type: String,
     default: "user"
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationCodeHash: {
+    type: String,
+    default: null,
+    select: false
+  },
+  verificationCodeExpiresAt: {
+    type: Date,
+    default: null
+  },
+  verificationCodeSentAt: {
+    type: Date,
+    default: null
+  },
+  userCreatedPublished: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

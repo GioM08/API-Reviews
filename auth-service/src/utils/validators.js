@@ -10,4 +10,18 @@ const loginSchema = z.object({
   password: z.string().min(6)
 });
 
-module.exports = { registerSchema, loginSchema };
+const verifyEmailSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/, "El código debe tener 6 dígitos")
+});
+
+const resendVerificationCodeSchema = z.object({
+  email: z.string().email()
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  verifyEmailSchema,
+  resendVerificationCodeSchema
+};

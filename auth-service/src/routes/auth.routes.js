@@ -1,6 +1,12 @@
 const express = require("express");
-const { register, login, healthCheck, registerAdmin } = require("../controllers/auth.controller");
-
+const {
+  register,
+  login,
+  healthCheck,
+  registerAdmin,
+  verifyEmail,
+  resendVerificationCode
+} = require("../controllers/auth.controller");
 const router = express.Router();
 
 router.get("/health", healthCheck);
@@ -89,5 +95,7 @@ router.post("/register/admin", registerAdmin);
  *         description: Credenciales incorrectas 
  */
 router.post("/login", login);
+router.post("/verify-email", verifyEmail);
+router.post("/resend-verification-code", resendVerificationCode);
 
 module.exports = router;
