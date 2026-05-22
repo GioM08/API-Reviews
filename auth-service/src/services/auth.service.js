@@ -3,10 +3,16 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { signToken } = require("../utils/jwt.util.js");
 const { publishUserCreated } = require("../utils/broker.util.js");
-const { sendVerificationCode } = require("../utils/mail.util.js");
+const {
+  sendVerificationCode,
+  sendPasswordResetCode
+} = require("../utils/mail.util.js");
 
 const CODE_EXPIRES_MINUTES = Number(process.env.VERIFICATION_CODE_EXPIRES_MINUTES) || 10;
 const RESEND_COOLDOWN_SECONDS = Number(process.env.VERIFICATION_RESEND_COOLDOWN_SECONDS) || 60;
+
+const PASSWORD_RESET_CODE_EXPIRES_MINUTES = Number(process.env.PASSWORD_RESET_CODE_EXPIRES_MINUTES) || 10;
+const PASSWORD_RESET_COOLDOWN_SECONDS = Number(process.env.PASSWORD_RESET_COOLDOWN_SECONDS) || 60;
 
 const normalizeEmail = (email) => email.toLowerCase().trim();
 
@@ -182,9 +188,76 @@ const resendVerificationCode = async ({ email }) => {
   };
 };
 
+const forgotPassword = async ({ email }) => {
+  const normalizedEmail = normalizeEmail(email);
+
+  const user = await Auth.findOne({ email: normalizedEmail }).select("+passwordResetCodeHash");
+
+  if (!user) {
+    return {
+      message: "Si el correo existe, se enviará un código para restablecer la contraseña"
+    };
+  }
+
+  if (user.passwordResetCodeSentAt) {
+    const secondsSinceLastCode = Math.floor((Date.now() - user.passwordResetCodeSentAt.getTime()) / 1000);
+
+    if (secondsSinceLastCode < PASSWORD_RESET_COOLDOWN_SECONDS) {
+      throw new Error(`Espera ${PASSWORD_RESET_COOLDOWN_SECONDS - secondsSinceLastCode} segundos para solicitar otro código`);
+    }
+  }
+
+  const code = generateVerificationCode();
+  const codeHash = await bcrypt.hash(code, 10);
+
+  user.passwordResetCodeHash = codeHash;
+  user.passwordResetCodeExpiresAt = new Date(Date.now() + PASSWORD_RESET_CODE_EXPIRES_MINUTES * 60 * 1000);
+  user.passwordResetCodeSentAt = new Date();
+
+  await user.save();
+  await sendPasswordResetCode(user.email, code);
+
+  return {
+    message: "Si el correo existe, se enviará un código para restablecer la contraseña"
+  };
+};
+
+const resetPassword = async ({ email, code, newPassword }) => {
+  const normalizedEmail = normalizeEmail(email);
+
+  const user = await Auth.findOne({ email: normalizedEmail }).select("+passwordResetCodeHash");
+  if (!user) throw new Error("Usuario no encontrado");
+
+  if (!user.passwordResetCodeHash || !user.passwordResetCodeExpiresAt) {
+    throw new Error("No hay código activo para restablecer la contraseña");
+  }
+
+  if (user.passwordResetCodeExpiresAt < new Date()) {
+    throw new Error("El código para restablecer la contraseña expiró");
+  }
+
+  const validCode = await bcrypt.compare(code, user.passwordResetCodeHash);
+  if (!validCode) throw new Error("Código inválido");
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  user.password = hashedPassword;
+  user.passwordResetCodeHash = null;
+  user.passwordResetCodeExpiresAt = null;
+  user.passwordResetCodeSentAt = null;
+
+  await user.save();
+
+  return {
+    message: "Contraseña actualizada correctamente"
+  };
+};
+
 module.exports = {
   register,
   login,
   verifyEmail,
-  resendVerificationCode
+  resendVerificationCode,
+  forgotPassword,
+  resetPassword
 };

@@ -3,7 +3,9 @@ const {
   registerSchema,
   loginSchema,
   verifyEmailSchema,
-  resendVerificationCodeSchema
+  resendVerificationCodeSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema
 } = require("../utils/validators");
 
 const healthCheck = (req, res) => {
@@ -50,6 +52,26 @@ const resendVerificationCode = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const data = forgotPasswordSchema.parse(req.body);
+    const result = await service.forgotPassword(data);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const data = resetPasswordSchema.parse(req.body);
+    const result = await service.resetPassword(data);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
 const registerAdmin = async (req, res) => {
   try {
     if (req.headers["x-admin-secret"] !== process.env.ADMIN_SECRET) {
@@ -70,5 +92,7 @@ module.exports = {
   healthCheck,
   registerAdmin,
   verifyEmail,
-  resendVerificationCode
+  resendVerificationCode,
+  forgotPassword,
+  resetPassword
 };

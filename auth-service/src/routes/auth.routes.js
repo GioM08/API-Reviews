@@ -5,11 +5,15 @@ const {
   healthCheck,
   registerAdmin,
   verifyEmail,
-  resendVerificationCode
+  resendVerificationCode,
+  forgotPassword,
+  resetPassword
 } = require("../controllers/auth.controller");
+
 const router = express.Router();
 
 router.get("/health", healthCheck);
+
 /**
  * @openapi
  * /api/auth/register:
@@ -37,6 +41,7 @@ router.get("/health", healthCheck);
  *         description: Error
  */
 router.post("/register", register);
+
 /**
  * @openapi
  * /api/auth/register/admin:
@@ -68,6 +73,7 @@ router.post("/register", register);
  *         description: Acceso denegado
  */
 router.post("/register/admin", registerAdmin);
+
 /**
  * @openapi
  * /api/auth/login:
@@ -90,12 +96,76 @@ router.post("/register/admin", registerAdmin);
  *                 example: "123456!"
  *     responses:
  *       200:
- *         description: Incio de sesión correctamente
+ *         description: Inicio de sesión correctamente
  *       400:
  *         description: Credenciales incorrectas 
  */
 router.post("/login", login);
+
 router.post("/verify-email", verifyEmail);
+
 router.post("/resend-verification-code", resendVerificationCode);
+
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Solicita un código para restablecer contraseña
+ *     tags:
+ *       - Servicio de auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "usuario@gmail.com"
+ *     responses:
+ *       200:
+ *         description: Código enviado si el correo existe
+ *       400:
+ *         description: Error al solicitar código
+ */
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @openapi
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Restablece la contraseña usando código enviado por correo
+ *     tags:
+ *       - Servicio de auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *               - newPassword
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "usuario@gmail.com"
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 example: "Nueva123!"
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada correctamente
+ *       400:
+ *         description: Código inválido, expirado o datos incorrectos
+ */
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

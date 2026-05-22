@@ -33,6 +33,21 @@ const authSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+
+  passwordResetCodeHash: {
+    type: String,
+    default: null,
+    select: false
+  },
+  passwordResetCodeExpiresAt: {
+    type: Date,
+    default: null
+  },
+  passwordResetCodeSentAt: {
+    type: Date,
+    default: null
+  },
+
   userCreatedPublished: {
     type: Boolean,
     default: false

@@ -38,6 +38,33 @@ const sendVerificationCode = async (email, code) => {
   });
 };
 
+const sendPasswordResetCode = async (email, code) => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("Faltan credenciales de correo");
+  }
+
+  const transporter = createTransporter();
+  const fromName = process.env.EMAIL_FROM_NAME || "FoodRanker";
+
+  await transporter.sendMail({
+    from: `"${fromName}" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Código para restablecer contraseña - FoodRanker",
+    text: `Tu código para restablecer tu contraseña de FoodRanker es: ${code}. Expira en 10 minutos.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #222;">
+        <h2>Restablecer contraseña</h2>
+        <p>Recibimos una solicitud para cambiar la contraseña de tu cuenta en <strong>FoodRanker</strong>.</p>
+        <p>Tu código para restablecer la contraseña es:</p>
+        <h1 style="letter-spacing: 4px;">${code}</h1>
+        <p>Este código expira en 10 minutos.</p>
+        <p>Si tú no solicitaste este cambio, puedes ignorar este correo.</p>
+      </div>
+    `
+  });
+};
+
 module.exports = {
-  sendVerificationCode
+  sendVerificationCode,
+  sendPasswordResetCode
 };
