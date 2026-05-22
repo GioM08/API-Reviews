@@ -194,16 +194,18 @@ const forgotPassword = async ({ email }) => {
   const user = await Auth.findOne({ email: normalizedEmail }).select("+passwordResetCodeHash");
 
   if (!user) {
-    return {
-      message: "Si el correo existe, se enviará un código para restablecer la contraseña"
-    };
+    throw new Error("No existe una cuenta registrada con ese correo");
   }
 
   if (user.passwordResetCodeSentAt) {
-    const secondsSinceLastCode = Math.floor((Date.now() - user.passwordResetCodeSentAt.getTime()) / 1000);
+    const secondsSinceLastCode = Math.floor(
+      (Date.now() - user.passwordResetCodeSentAt.getTime()) / 1000
+    );
 
     if (secondsSinceLastCode < PASSWORD_RESET_COOLDOWN_SECONDS) {
-      throw new Error(`Espera ${PASSWORD_RESET_COOLDOWN_SECONDS - secondsSinceLastCode} segundos para solicitar otro código`);
+      throw new Error(
+        `Espera ${PASSWORD_RESET_COOLDOWN_SECONDS - secondsSinceLastCode} segundos para solicitar otro código`
+      );
     }
   }
 
@@ -211,14 +213,16 @@ const forgotPassword = async ({ email }) => {
   const codeHash = await bcrypt.hash(code, 10);
 
   user.passwordResetCodeHash = codeHash;
-  user.passwordResetCodeExpiresAt = new Date(Date.now() + PASSWORD_RESET_CODE_EXPIRES_MINUTES * 60 * 1000);
+  user.passwordResetCodeExpiresAt = new Date(
+    Date.now() + PASSWORD_RESET_CODE_EXPIRES_MINUTES * 60 * 1000
+  );
   user.passwordResetCodeSentAt = new Date();
 
   await user.save();
   await sendPasswordResetCode(user.email, code);
 
   return {
-    message: "Si el correo existe, se enviará un código para restablecer la contraseña"
+    message: "Código enviado correctamente. Revisa tu correo."
   };
 };
 
