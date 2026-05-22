@@ -11,6 +11,26 @@ const { publishPlanEvent } = require("../src/utils/broker.util");
 describe("Plan service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    process.env.USER_SERVICE_URL = "http://user-service:3001";
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        "user-1": {
+          name: "Usuario Uno",
+          avatar: "user1.png"
+        },
+        "user-2": {
+          name: "Usuario Dos",
+          avatar: "user2.png"
+        },
+        "user-3": {
+          name: "Usuario Tres",
+          avatar: "user3.png"
+        }
+      })
+    });
   });
 
   const createFriendship = async (userA = "user-1", userB = "user-2") => {
@@ -20,6 +40,21 @@ describe("Plan service", () => {
       status: "accepted"
     });
   };
+
+  describe("getETag", () => {
+    test("debe devolver updatedAt como string ISO", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2" }],
+        proposedDate: new Date()
+      });
+
+      const etag = planService.getETag(plan);
+
+      expect(etag).toBe(plan.updatedAt.toISOString());
+    });
+  });
 
   describe("createPlan", () => {
     test("debe lanzar error si un participante no es amigo", async () => {
@@ -157,6 +192,23 @@ describe("Plan service", () => {
         "accepted"
       )).rejects.toThrow("Ya respondiste a este plan");
     });
+
+    test("debe lanzar ETagMismatchError si el ETag no coincide", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      await expect(planService.respondToPlan(
+        plan._id.toString(),
+        "user-2",
+        "accepted",
+        "etag-viejo"
+      )).rejects.toThrow(planService.ETagMismatchError);
+    });
   });
 
   describe("completePlan", () => {
@@ -225,6 +277,257 @@ describe("Plan service", () => {
           participants: ["user-1", "user-2"]
         })
       );
+    });
+  });
+
+  describe("updatePlanDate", () => {
+    test("debe actualizar fecha si el usuario es proponente", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        restaurantName: "Restaurante Test",
+        proposerId: "user-1",
+        participants: [
+          { userId: "user-2", status: "accepted" },
+          { userId: "user-3", status: "rejected" }
+        ],
+        proposedDate: new Date("2026-05-01T18:00:00.000Z"),
+        status: "accepted"
+      });
+
+      const result = await planService.updatePlanDate(
+        plan._id.toString(),
+        "user-1",
+        "2026-06-01T18:00:00.000Z"
+      );
+
+      expect(result.status).toBe("proposed");
+      expect(result.proposedDate.toISOString()).toBe("2026-06-01T18:00:00.000Z");
+      expect(result.participants.every((p) => p.status === "pending")).toBe(true);
+
+      expect(publishPlanEvent).toHaveBeenCalledWith(
+        "plan_date_changed",
+        expect.objectContaining({
+          callerName: "Usuario Uno",
+          recipientIds: ["user-2", "user-3"]
+        })
+      );
+    });
+
+    test("debe actualizar fecha si el usuario es participante activo", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [
+          { userId: "user-2", status: "accepted" },
+          { userId: "user-3", status: "accepted" }
+        ],
+        proposedDate: new Date("2026-05-01T18:00:00.000Z"),
+        status: "accepted"
+      });
+
+      const result = await planService.updatePlanDate(
+        plan._id.toString(),
+        "user-2",
+        "2026-06-02T18:00:00.000Z"
+      );
+
+      const self = result.participants.find((p) => p.userId === "user-2");
+      const other = result.participants.find((p) => p.userId === "user-3");
+
+      expect(result.status).toBe("proposed");
+      expect(self.status).toBe("accepted");
+      expect(other.status).toBe("pending");
+
+      expect(publishPlanEvent).toHaveBeenCalledWith(
+        "plan_date_changed",
+        expect.objectContaining({
+          callerName: "Usuario Dos",
+          recipientIds: ["user-1", "user-3"]
+        })
+      );
+    });
+
+    test("debe lanzar error si el usuario no tiene acceso", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "accepted" }],
+        proposedDate: new Date(),
+        status: "accepted"
+      });
+
+      await expect(planService.updatePlanDate(
+        plan._id.toString(),
+        "user-4",
+        "2026-06-01T18:00:00.000Z"
+      )).rejects.toThrow("No tienes acceso a este plan");
+    });
+
+    test("debe lanzar error si el plan está completado", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "accepted" }],
+        proposedDate: new Date(),
+        status: "completed"
+      });
+
+      await expect(planService.updatePlanDate(
+        plan._id.toString(),
+        "user-1",
+        "2026-06-01T18:00:00.000Z"
+      )).rejects.toThrow("No se puede modificar un plan completado");
+    });
+  });
+
+  describe("inviteParticipants", () => {
+    test("debe invitar nuevos participantes si son amigos", async () => {
+      await createFriendship("user-1", "user-3");
+
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      const result = await planService.inviteParticipants(
+        plan._id.toString(),
+        "user-1",
+        ["user-3"]
+      );
+
+      expect(result.participants.map((p) => p.userId)).toEqual(
+        expect.arrayContaining(["user-2", "user-3"])
+      );
+    });
+
+    test("no debe duplicar participante ya invitado", async () => {
+      await createFriendship("user-1", "user-2");
+
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      const result = await planService.inviteParticipants(
+        plan._id.toString(),
+        "user-1",
+        ["user-2"]
+      );
+
+      expect(result.participants).toHaveLength(1);
+    });
+
+    test("debe lanzar error si no es proponente", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      await expect(planService.inviteParticipants(
+        plan._id.toString(),
+        "user-2",
+        ["user-3"]
+      )).rejects.toThrow("Solo el proponente puede invitar participantes");
+    });
+
+    test("debe lanzar error si el nuevo participante no es amigo", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      await expect(planService.inviteParticipants(
+        plan._id.toString(),
+        "user-1",
+        ["user-3"]
+      )).rejects.toThrow("El usuario user-3 no es tu amigo");
+    });
+  });
+
+  describe("removeParticipant", () => {
+    test("debe eliminar participante si el usuario es proponente", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [
+          { userId: "user-2", status: "accepted" },
+          { userId: "user-3", status: "accepted" }
+        ],
+        proposedDate: new Date(),
+        status: "accepted"
+      });
+
+      const result = await planService.removeParticipant(
+        plan._id.toString(),
+        "user-1",
+        "user-3"
+      );
+
+      expect(result.participants.map((p) => p.userId)).not.toContain("user-3");
+      expect(result.status).toBe("accepted");
+    });
+
+    test("debe cambiar a proposed si se queda sin participantes", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "accepted" }],
+        proposedDate: new Date(),
+        status: "accepted"
+      });
+
+      const result = await planService.removeParticipant(
+        plan._id.toString(),
+        "user-1",
+        "user-2"
+      );
+
+      expect(result.participants).toHaveLength(0);
+      expect(result.status).toBe("proposed");
+    });
+
+    test("debe lanzar error si no es proponente", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      await expect(planService.removeParticipant(
+        plan._id.toString(),
+        "user-2",
+        "user-2"
+      )).rejects.toThrow("Solo el proponente puede eliminar participantes");
+    });
+
+    test("debe lanzar error si el participante no existe", async () => {
+      const plan = await Plan.create({
+        restaurantId: 1,
+        proposerId: "user-1",
+        participants: [{ userId: "user-2", status: "pending" }],
+        proposedDate: new Date(),
+        status: "proposed"
+      });
+
+      await expect(planService.removeParticipant(
+        plan._id.toString(),
+        "user-1",
+        "user-3"
+      )).rejects.toThrow("Participante no encontrado en el plan");
     });
   });
 

@@ -7,6 +7,7 @@ jest.mock("../src/utils/jwt.util", () => ({
 jest.mock("../src/services/review.service", () => ({
   createReview: jest.fn(),
   getReviews: jest.fn(),
+  computeRestaurantStats: jest.fn(),
   getSegmentedScores: jest.fn(),
   addVote: jest.fn(),
   reportReview: jest.fn(),
@@ -401,6 +402,48 @@ describe("Review routes", () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ message: "Reseña eliminada" });
       expect(service.deleteReview).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("GET /api/reviews/restaurant/:id/stats", () => {
+    test("debe devolver 400 si el restaurantId es inválido", async () => {
+      const response = await request(app)
+        .get("/api/reviews/restaurant/abc/stats");
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error", "restaurantId inválido");
+    });
+
+    test("debe devolver estadísticas del restaurante", async () => {
+      const stats = {
+        detailed_ratings_avg: {
+          food: 4.5,
+          service: 4
+        },
+        amenities_stats: {
+          wifi: 0.75,
+          parking: 0.5
+        }
+      };
+
+      service.computeRestaurantStats.mockResolvedValueOnce(stats);
+
+      const response = await request(app)
+        .get("/api/reviews/restaurant/1/stats");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(stats);
+      expect(service.computeRestaurantStats).toHaveBeenCalledWith(1);
+    });
+
+    test("debe devolver 500 si falla el cálculo de estadísticas", async () => {
+      service.computeRestaurantStats.mockRejectedValueOnce(new Error("Error stats"));
+
+      const response = await request(app)
+        .get("/api/reviews/restaurant/1/stats");
+
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty("error", "Error stats");
     });
   });
 });

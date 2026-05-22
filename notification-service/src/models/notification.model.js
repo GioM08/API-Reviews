@@ -12,6 +12,7 @@ const NotificationSchema = new mongoose.Schema({
       'plan_accepted',
       'plan_rejected',
       'plan_completed',
+      'plan_date_changed',
       'review_liked',
       'review_upvoted',
       'review_commented',

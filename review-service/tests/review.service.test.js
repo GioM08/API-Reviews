@@ -12,8 +12,7 @@ jest.mock("../src/utils/broker.util", () => ({
 
 const { pool } = require("../src/config/db");
 const {
-  publishReviewCreated,
-  publishInteractionEvent
+  publishReviewCreated
 } = require("../src/utils/broker.util");
 const service = require("../src/services/review.service");
 
@@ -100,7 +99,18 @@ describe("Review service", () => {
         .mockResolvedValueOnce({ rows: [{ id: 1 }] })
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [review] })
-        .mockResolvedValueOnce({ rows: [media] });
+        .mockResolvedValueOnce({ rows: [media] })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              detailed_ratings: {
+                food: 5,
+                service: 4
+              },
+              amenities: ["wifi", "parking"]
+            }
+          ]
+        });
 
       const result = await service.createReview({
         restaurantId: 1,
@@ -127,7 +137,67 @@ describe("Review service", () => {
         stars: 5,
         userId: "user-123",
         reviewId: 10,
-        context: { moment: "lunch" }
+        context: { moment: "lunch" },
+        detailed_ratings_avg: {
+          food: 5,
+          service: 4
+        },
+        amenities_stats: {
+          wifi: 1,
+          parking: 1
+        }
+      });
+    });
+  });
+
+  describe("computeRestaurantStats", () => {
+    test("debe devolver objetos vacíos si no hay reseñas", async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const result = await service.computeRestaurantStats(1);
+
+      expect(result).toEqual({
+        detailed_ratings_avg: {},
+        amenities_stats: {}
+      });
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining("SELECT detailed_ratings, amenities"),
+        [1]
+      );
+    });
+
+    test("debe calcular promedios de ratings y porcentaje de amenities", async () => {
+      pool.query.mockResolvedValueOnce({
+        rows: [
+          {
+            detailed_ratings: {
+              food: 5,
+              service: 4
+            },
+            amenities: ["wifi", "parking"]
+          },
+          {
+            detailed_ratings: {
+              food: 3,
+              service: 5
+            },
+            amenities: ["wifi"]
+          }
+        ]
+      });
+
+      const result = await service.computeRestaurantStats(1);
+
+      expect(result).toEqual({
+        detailed_ratings_avg: {
+          food: 4,
+          service: 4.5
+        },
+        amenities_stats: {
+          wifi: 1,
+          parking: 0.5
+        }
       });
     });
   });

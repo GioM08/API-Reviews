@@ -277,4 +277,33 @@ describe("Restaurant service", () => {
       );
     });
   });
+
+  describe("updateRestaurantStats", () => {
+    test("debe actualizar detailed_ratings_avg y amenities_stats del restaurante", async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const detailedRatingsAvg = {
+        food: 4.5,
+        service: 4.2,
+        ambience: 4.8
+      };
+
+      const amenitiesStats = {
+        wifi: 10,
+        parking: 5,
+        petFriendly: 3
+      };
+
+      await service.updateRestaurantStats(1, detailedRatingsAvg, amenitiesStats);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining("UPDATE restaurants"),
+        [
+          JSON.stringify(detailedRatingsAvg),
+          JSON.stringify(amenitiesStats),
+          1
+        ]
+      );
+    });
+  });
 });

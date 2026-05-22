@@ -12,7 +12,7 @@ const enrichWithUsers = async (reviews) => {
     });
     if (!res.ok) return reviews;
     const usersMap = await res.json();
-    return reviews.map((r) => ({
+    return reviews.map((r) => ({  
       ...r,
       user_name: usersMap[r.user_id]?.name || '',
       user_avatar: usersMap[r.user_id]?.avatar || '',

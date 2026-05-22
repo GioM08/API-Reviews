@@ -7,6 +7,8 @@ jest.mock("../src/services/media.service", () => ({
 const { uploadToStorage } = require("../src/services/media.service");
 const { uploadMedia } = require("../src/handlers/media.handler");
 
+const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
 describe("Media handler", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -37,7 +39,7 @@ describe("Media handler", () => {
 
     call.emit("end");
 
-    await new Promise(process.nextTick);
+    await flushPromises();
 
     expect(uploadToStorage).toHaveBeenCalledWith(
       [Buffer.from("parte1"), Buffer.from("parte2")],
@@ -98,4 +100,24 @@ describe("Media handler", () => {
 
     consoleSpy.mockRestore();
   });
+
+  test("debe registrar error si falla el stream gRPC", () => {
+  const call = new EventEmitter();
+  const callback = jest.fn();
+  const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+  uploadMedia(call, callback);
+
+  call.emit("error", new Error("Stream error"));
+
+  expect(consoleSpy).toHaveBeenCalledWith(
+    " [!] Error en stream gRPC:",
+    "Stream error"
+  );
+
+  expect(callback).not.toHaveBeenCalled();
+
+  consoleSpy.mockRestore();
+});
+
 });

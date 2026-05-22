@@ -14,13 +14,27 @@ jest.mock("../src/services/friendship.service", () => ({
   getFriendshipStatus: jest.fn()
 }));
 
-jest.mock("../src/services/plan.service", () => ({
-  createPlan: jest.fn(),
-  respondToPlan: jest.fn(),
-  completePlan: jest.fn(),
-  getMyPlans: jest.fn(),
-  getPlanById: jest.fn()
-}));
+jest.mock("../src/services/plan.service", () => {
+  class ETagMismatchError extends Error {
+    constructor() {
+      super("El plan fue modificado por otra acción. Recarga e intenta de nuevo.");
+      this.name = "ETagMismatchError";
+    }
+  }
+
+  return {
+    ETagMismatchError,
+    getETag: jest.fn(),
+    createPlan: jest.fn(),
+    respondToPlan: jest.fn(),
+    completePlan: jest.fn(),
+    updatePlanDate: jest.fn(),
+    inviteParticipants: jest.fn(),
+    removeParticipant: jest.fn(),
+    getMyPlans: jest.fn(),
+    getPlanById: jest.fn()
+  };
+});
 
 const app = require("../src/app");
 const { verifyToken } = require("../src/utils/jwt.util");
@@ -39,6 +53,8 @@ describe("Social routes", () => {
       id: "user-123",
       role: "user"
     });
+
+    planService.getETag.mockReturnValue("etag-test");
 
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -215,7 +231,9 @@ describe("Social routes", () => {
     });
 
     test("debe devolver 400 si service falla en solicitud", async () => {
-      friendshipService.sendRequest.mockRejectedValueOnce(new Error("Ya hay una solicitud pendiente"));
+      friendshipService.sendRequest.mockRejectedValueOnce(
+        new Error("Ya hay una solicitud pendiente")
+      );
 
       const response = await request(app)
         .post("/api/friends/request/friend-1")
@@ -277,57 +295,6 @@ describe("Social routes", () => {
       expect(response.body).toHaveProperty("error");
     });
 
-    test("debe aceptar plan", async () => {
-      const plan = {
-        _id: "plan-1",
-        status: "accepted"
-      };
-
-      planService.respondToPlan.mockResolvedValueOnce(plan);
-
-      const response = await request(app)
-        .post("/api/plans/plan-1/accept")
-        .set("Authorization", authHeader);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(plan);
-      expect(planService.respondToPlan).toHaveBeenCalledWith("plan-1", "user-123", "accepted");
-    });
-
-    test("debe rechazar plan", async () => {
-      const plan = {
-        _id: "plan-1",
-        status: "rejected"
-      };
-
-      planService.respondToPlan.mockResolvedValueOnce(plan);
-
-      const response = await request(app)
-        .post("/api/plans/plan-1/reject")
-        .set("Authorization", authHeader);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(plan);
-      expect(planService.respondToPlan).toHaveBeenCalledWith("plan-1", "user-123", "rejected");
-    });
-
-    test("debe completar plan", async () => {
-      const plan = {
-        _id: "plan-1",
-        status: "completed"
-      };
-
-      planService.completePlan.mockResolvedValueOnce(plan);
-
-      const response = await request(app)
-        .patch("/api/plans/plan-1/complete")
-        .set("Authorization", authHeader);
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(plan);
-      expect(planService.completePlan).toHaveBeenCalledWith("plan-1", "user-123");
-    });
-
     test("debe devolver mis planes", async () => {
       const plans = [
         {
@@ -347,7 +314,7 @@ describe("Social routes", () => {
       expect(planService.getMyPlans).toHaveBeenCalledWith("user-123");
     });
 
-    test("debe devolver plan por id", async () => {
+    test("debe devolver plan por id y agregar header ETag", async () => {
       const plan = {
         _id: "plan-1",
         proposerId: "user-123"
@@ -361,11 +328,15 @@ describe("Social routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(plan);
+      expect(response.headers.etag).toBe("etag-test");
       expect(planService.getPlanById).toHaveBeenCalledWith("plan-1", "user-123");
+      expect(planService.getETag).toHaveBeenCalledWith(plan);
     });
 
     test("debe devolver 404 si no tiene acceso al plan", async () => {
-      planService.getPlanById.mockRejectedValueOnce(new Error("No tienes acceso a este plan"));
+      planService.getPlanById.mockRejectedValueOnce(
+        new Error("No tienes acceso a este plan")
+      );
 
       const response = await request(app)
         .get("/api/plans/plan-1")
@@ -373,6 +344,194 @@ describe("Social routes", () => {
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty("error", "No tienes acceso a este plan");
+    });
+
+    test("debe aceptar plan usando If-Match", async () => {
+      const plan = {
+        _id: "plan-1",
+        status: "accepted"
+      };
+
+      planService.respondToPlan.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .post("/api/plans/plan-1/accept")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(response.headers.etag).toBe("etag-test");
+      expect(planService.respondToPlan).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        "accepted",
+        "etag-old"
+      );
+    });
+
+    test("debe devolver 412 si hay conflicto de ETag al aceptar plan", async () => {
+      planService.respondToPlan.mockRejectedValueOnce(
+        new planService.ETagMismatchError()
+      );
+
+      const response = await request(app)
+        .post("/api/plans/plan-1/accept")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old");
+
+      expect(response.status).toBe(412);
+      expect(response.body).toHaveProperty(
+        "error",
+        "El plan fue modificado por otra acción. Recarga e intenta de nuevo."
+      );
+    });
+
+    test("debe rechazar plan usando If-Match", async () => {
+      const plan = {
+        _id: "plan-1",
+        status: "rejected"
+      };
+
+      planService.respondToPlan.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .post("/api/plans/plan-1/reject")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(planService.respondToPlan).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        "rejected",
+        "etag-old"
+      );
+    });
+
+    test("debe completar plan usando If-Match", async () => {
+      const plan = {
+        _id: "plan-1",
+        status: "completed"
+      };
+
+      planService.completePlan.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .patch("/api/plans/plan-1/complete")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(planService.completePlan).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        "etag-old"
+      );
+    });
+
+    test("debe actualizar fecha del plan", async () => {
+      const plan = {
+        _id: "plan-1",
+        status: "proposed"
+      };
+
+      planService.updatePlanDate.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .patch("/api/plans/plan-1/date")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old")
+        .send({
+          proposedDate: "2026-06-01T18:00:00.000Z"
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(planService.updatePlanDate).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        "2026-06-01T18:00:00.000Z",
+        "etag-old"
+      );
+    });
+
+    test("debe devolver 400 si la fecha nueva es inválida", async () => {
+      const response = await request(app)
+        .patch("/api/plans/plan-1/date")
+        .set("Authorization", authHeader)
+        .send({
+          proposedDate: "fecha-mala"
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    });
+
+    test("debe invitar participantes al plan", async () => {
+      const plan = {
+        _id: "plan-1",
+        participants: [
+          {
+            userId: "friend-1",
+            status: "pending"
+          }
+        ]
+      };
+
+      planService.inviteParticipants.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .post("/api/plans/plan-1/invite")
+        .set("Authorization", authHeader)
+        .send({
+          participantIds: ["friend-1"]
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(planService.inviteParticipants).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        ["friend-1"]
+      );
+    });
+
+    test("debe devolver 400 si no se mandan participantes al invitar", async () => {
+      const response = await request(app)
+        .post("/api/plans/plan-1/invite")
+        .set("Authorization", authHeader)
+        .send({
+          participantIds: []
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty("error");
+    });
+
+    test("debe eliminar participante del plan usando If-Match", async () => {
+      const plan = {
+        _id: "plan-1",
+        participants: []
+      };
+
+      planService.removeParticipant.mockResolvedValueOnce(plan);
+
+      const response = await request(app)
+        .delete("/api/plans/plan-1/participants/friend-1")
+        .set("Authorization", authHeader)
+        .set("If-Match", "etag-old");
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(plan);
+      expect(planService.removeParticipant).toHaveBeenCalledWith(
+        "plan-1",
+        "user-123",
+        "friend-1",
+        "etag-old"
+      );
     });
   });
 });

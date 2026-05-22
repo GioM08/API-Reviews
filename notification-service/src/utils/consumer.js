@@ -195,4 +195,9 @@ const startConsumers = async () => {
   }
 };
 
-module.exports = { startConsumers };
+module.exports = {
+  startConsumers,
+  handleMessage,
+  pushToUsers,
+  HANDLERS,
+};

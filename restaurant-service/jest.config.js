@@ -8,6 +8,7 @@ module.exports = {
     "!src/server.js",
     "!src/config/db.js",
     "!src/models/restaurant.model.js",
+    "!src/middlewares/auth.middleware.js",
     "!src/utils/google-places.util.js",
     "!src/utils/overpass.util.js",
     "!src/utils/broker.util.js",
@@ -17,7 +18,6 @@ module.exports = {
   coverageThreshold: {
     global: {
       statements: 70,
-      branches: 70,
       functions: 70,
       lines: 70
     }

@@ -1,0 +1,135 @@
+# -------------------------------------------------------------------
+# Servicios de prueba automatizada
+# -------------------------------------------------------------------
+# Cada servicio ejecuta su propio script:
+#   npm run test:ci
+#
+# Este script corre las pruebas unitarias y genera el reporte de cobertura
+# configurado con Jest.
+#
+# Para ejecutar todos los servicios de prueba:
+#   docker compose -f docker-compose.test.yml up --build
+# Para detenerlos:
+#  docker compose -f docker-compose.test.yml down --remove-orphans
+#
+# Para ejecutar un servicio específico:
+#   docker compose -f docker-compose.test.yml run --rm auth-service-test
+#   docker compose -f docker-compose.test.yml run --rm media-service-test
+#   docker compose -f docker-compose.test.yml run --rm notification-service-test
+#   docker compose -f docker-compose.test.yml run --rm restaurant-service-test
+#   docker compose -f docker-compose.test.yml run --rm review-service-test
+#   docker compose -f docker-compose.test.yml run --rm social-service-test
+#   docker compose -f docker-compose.test.yml run --rm user-service-test
+#
+# Nota:
+# Las variables de entorno usadas aquí son valores de prueba.
+# Las integraciones externas como MongoDB, PostgreSQL, RabbitMQ,
+# Firebase, MinIO y Google Places se simulan mediante mocks o
+# bases de datos en memoria cuando aplica.
+# -------------------------------------------------------------------
+
+services:
+  auth-service-test:
+    build:
+      context: ./auth-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      ADMIN_SECRET: secret-test
+      MONGO_URI: mongodb://unused/auth-test
+      RABBITMQ_URL: amqp://unused:5672
+      JWT_PRIVATE_KEY: ./keys/private.key
+      JWT_PUBLIC_KEY: ./keys/public.key
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_SECURE: "false"
+      EMAIL_USER: test@example.com
+      EMAIL_PASS: test-password
+      EMAIL_FROM_NAME: FoodRanker
+      VERIFICATION_CODE_EXPIRES_MINUTES: 10
+      VERIFICATION_RESEND_COOLDOWN_SECONDS: 60
+      PASSWORD_RESET_CODE_EXPIRES_MINUTES: 10
+      PASSWORD_RESET_COOLDOWN_SECONDS: 60
+
+  media-service-test:
+    build:
+      context: ./media-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      GRPC_PORT: 50051
+      PORT_MEDIA_HTTP: 3005
+      MINIO_ENDPOINT: localhost
+      MINIO_PORT: 9000
+      MINIO_PUBLIC_URL: http://localhost:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: media
+
+  notification-service-test:
+    build:
+      context: ./notification-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      PORT: 3007
+      MONGO_URI: mongodb://unused/notification-test
+      JWT_PUBLIC_KEY: ./keys/public.key
+      RABBITMQ_URL: amqp://unused:5672
+      USER_SERVICE_URL: http://user-service:3001
+      FIREBASE_CREDENTIALS_BASE64: ""
+
+  restaurant-service-test:
+    build:
+      context: ./restaurant-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      PORT: 3003
+      DATABASE_URL: postgresql://unused:unused@unused:5432/restaurants-test
+      JWT_PUBLIC_KEY: ./keys/public.key
+      RABBITMQ_URL: amqp://unused:5672
+      GOOGLE_PLACES_API_KEY: test-key
+
+  review-service-test:
+    build:
+      context: ./review-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      PORT: 3004
+      DATABASE_URL: postgresql://unused:unused@unused:5432/reviews-test
+      JWT_PUBLIC_KEY: ./keys/public.key
+      RABBITMQ_URL: amqp://unused:5672
+      USER_SERVICE_URL: http://user-service:3001
+
+  social-service-test:
+    build:
+      context: ./social-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      PORT: 3006
+      MONGO_URI: mongodb://unused/social-test
+      JWT_PUBLIC_KEY: ./keys/public.key
+      RABBITMQ_URL: amqp://unused:5672
+      USER_SERVICE_URL: http://user-service:3001
+
+  user-service-test:
+    build:
+      context: ./user-service
+    working_dir: /app
+    command: npm run test:ci
+    environment:
+      NODE_ENV: test
+      PORT: 3001
+      MONGO_URI: mongodb://unused/user-test
+      JWT_PUBLIC_KEY: ./keys/public.key
+      RABBITMQ_URL: amqp://unused:5672
+
