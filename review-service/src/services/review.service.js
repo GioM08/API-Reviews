@@ -271,23 +271,75 @@ const addVote = async (reviewId, userId, voteType) => {
   }
 };
 
-const reportReview = async (reviewId, userId, reason) => {
+const VALID_REPORT_REASONS = [
+  'inappropriate_content',
+  'misleading_content',
+  'false_information',
+  'spam',
+  'hate_speech',
+  'harassment',
+  'other',
+];
+
+const reportReview = async (reviewId, userId, reason, comment) => {
+  const normalizedReason = VALID_REPORT_REASONS.includes(reason) ? reason : 'other';
   await pool.query(
-    `INSERT INTO reports (review_id, user_id, reason) VALUES ($1, $2, $3)
-     ON CONFLICT (review_id, user_id) DO NOTHING`,
-    [reviewId, userId, reason || '']
+    `INSERT INTO reports (review_id, user_id, reason, comment)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (review_id, user_id) DO UPDATE
+       SET reason = EXCLUDED.reason, comment = EXCLUDED.comment`,
+    [reviewId, userId, normalizedReason, comment || null]
   );
 };
 
 const getReportedReviews = async () => {
   const result = await pool.query(`
-    SELECT r.*, COUNT(rp.id) AS report_count
+    SELECT
+      r.*,
+      COUNT(rp.id)::int AS report_count,
+      json_agg(json_build_object(
+        'id', rp.id,
+        'user_id', rp.user_id,
+        'reason', rp.reason,
+        'comment', rp.comment,
+        'created_at', rp.created_at
+      ) ORDER BY rp.created_at DESC) AS reports,
+      json_object_agg(rp.reason, reason_counts.cnt) AS reason_breakdown
     FROM reviews r
     JOIN reports rp ON rp.review_id = r.id
+    JOIN (
+      SELECT review_id, reason, COUNT(*)::int AS cnt
+      FROM reports GROUP BY review_id, reason
+    ) reason_counts ON reason_counts.review_id = r.id AND reason_counts.reason = rp.reason
     GROUP BY r.id
     ORDER BY report_count DESC
   `);
-  return result.rows;
+  return enrichWithUsers(result.rows);
+};
+
+const getReviewReports = async (reviewId) => {
+  const reviewResult = await pool.query('SELECT * FROM reviews WHERE id = $1', [reviewId]);
+  if (reviewResult.rows.length === 0) throw new Error('Reseña no encontrada');
+
+  const reportsResult = await pool.query(`
+    SELECT id, user_id, reason, comment, created_at
+    FROM reports WHERE review_id = $1 ORDER BY created_at DESC
+  `, [reviewId]);
+
+  const reports = reportsResult.rows;
+  const reasonBreakdown = {};
+  for (const rp of reports) {
+    reasonBreakdown[rp.reason] = (reasonBreakdown[rp.reason] || 0) + 1;
+  }
+
+  const enriched = await enrichWithUsers(reports.map((rp) => ({ ...rp, user_id: rp.user_id })));
+
+  return {
+    review: reviewResult.rows[0],
+    total_reports: reports.length,
+    reason_breakdown: reasonBreakdown,
+    reports: enriched,
+  };
 };
 
 const hideReview = async (reviewId) => {
@@ -299,11 +351,110 @@ const hideReview = async (reviewId) => {
   return result.rows[0];
 };
 
+const unhideReview = async (reviewId) => {
+  const result = await pool.query(
+    'UPDATE reviews SET hidden = FALSE WHERE id = $1 RETURNING *',
+    [reviewId]
+  );
+  if (result.rows.length === 0) throw new Error('Reseña no encontrada');
+  return result.rows[0];
+};
+
 const deleteReview = async (reviewId) => {
   await pool.query('DELETE FROM votes WHERE review_id = $1', [reviewId]);
   await pool.query('DELETE FROM reports WHERE review_id = $1', [reviewId]);
   const result = await pool.query('DELETE FROM reviews WHERE id = $1 RETURNING id', [reviewId]);
   if (result.rows.length === 0) throw new Error('Reseña no encontrada');
+};
+
+const getAdminStats = async () => {
+  const [
+    reviewTotals,
+    starDist,
+    reviewsByMonth,
+    reportTotals,
+    reasonDist,
+    topReported,
+    topRestaurants,
+    moderationStatus,
+  ] = await Promise.all([
+    pool.query(`SELECT COUNT(*)::int AS total, ROUND(AVG(stars), 2) AS avg_stars FROM reviews`),
+
+    pool.query(`
+      SELECT stars, COUNT(*)::int AS count
+      FROM reviews GROUP BY stars ORDER BY stars
+    `),
+
+    pool.query(`
+      SELECT TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+             COUNT(*)::int AS count
+      FROM reviews
+      WHERE created_at >= NOW() - INTERVAL '12 months'
+      GROUP BY month ORDER BY month
+    `),
+
+    pool.query(`
+      SELECT COUNT(*)::int AS total_reports,
+             COUNT(DISTINCT review_id)::int AS reported_reviews,
+             COUNT(DISTINCT user_id)::int AS reporters
+      FROM reports
+    `),
+
+    pool.query(`
+      SELECT reason, COUNT(*)::int AS count
+      FROM reports GROUP BY reason ORDER BY count DESC
+    `),
+
+    pool.query(`
+      SELECT r.id, r.restaurant_id, r.user_id, r.stars, r.comment, r.hidden,
+             COUNT(rp.id)::int AS report_count
+      FROM reviews r
+      JOIN reports rp ON rp.review_id = r.id
+      GROUP BY r.id ORDER BY report_count DESC LIMIT 10
+    `),
+
+    pool.query(`
+      SELECT r.restaurant_id,
+             rs.name AS restaurant_name,
+             COUNT(*)::int AS review_count,
+             ROUND(AVG(r.stars), 2) AS avg_stars,
+             SUM(r.likes_count)::int AS total_likes
+      FROM reviews r
+      JOIN restaurants rs ON rs.id = r.restaurant_id
+      WHERE r.hidden = FALSE
+      GROUP BY r.restaurant_id, rs.name ORDER BY review_count DESC LIMIT 10
+    `),
+
+    pool.query(`
+      SELECT
+        COUNT(*)::int AS total,
+        SUM(CASE WHEN hidden = TRUE THEN 1 ELSE 0 END)::int AS hidden,
+        SUM(CASE WHEN hidden = FALSE THEN 1 ELSE 0 END)::int AS visible
+      FROM reviews
+    `),
+  ]);
+
+  const enrichedTopReported = await enrichWithUsers(topReported.rows);
+
+  return {
+    reviews: {
+      total: reviewTotals.rows[0].total,
+      avg_stars: Number(reviewTotals.rows[0].avg_stars),
+      by_stars: starDist.rows,
+      by_month: reviewsByMonth.rows,
+      moderation: moderationStatus.rows[0],
+    },
+    reports: {
+      total_reports: reportTotals.rows[0].total_reports,
+      reported_reviews: reportTotals.rows[0].reported_reviews,
+      unique_reporters: reportTotals.rows[0].reporters,
+      by_reason: reasonDist.rows,
+      top_reported_reviews: enrichedTopReported,
+    },
+    restaurants: {
+      top_by_reviews: topRestaurants.rows,
+    },
+  };
 };
 
 const toggleLike = async (reviewId, userId) => {
@@ -419,6 +570,10 @@ module.exports = {
   deleteComment,
   reportReview,
   getReportedReviews,
+  getReviewReports,
   hideReview,
+  unhideReview,
   deleteReview,
+  getAdminStats,
+  VALID_REPORT_REASONS,
 };

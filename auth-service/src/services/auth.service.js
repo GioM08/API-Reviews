@@ -105,6 +105,10 @@ const login = async ({ email, password }) => {
     throw new Error("Debes verificar tu correo electrónico antes de iniciar sesión");
   }
 
+  if (user.banned) {
+    throw new Error("Tu cuenta ha sido suspendida. Contacta al soporte para más información.");
+  }
+
   const token = signToken({
     id: user._id,
     role: user.role
@@ -257,11 +261,38 @@ const resetPassword = async ({ email, code, newPassword }) => {
   };
 };
 
+const banUser = async (userId, reason) => {
+  const user = await Auth.findById(userId);
+  if (!user) throw new Error("Usuario no encontrado");
+  if (user.role === "admin") throw new Error("No se puede banear a un administrador");
+
+  user.banned = true;
+  user.bannedAt = new Date();
+  user.banReason = reason || null;
+  await user.save();
+
+  return { id: user._id, email: user.email, banned: true, bannedAt: user.bannedAt, banReason: user.banReason };
+};
+
+const unbanUser = async (userId) => {
+  const user = await Auth.findById(userId);
+  if (!user) throw new Error("Usuario no encontrado");
+
+  user.banned = false;
+  user.bannedAt = null;
+  user.banReason = null;
+  await user.save();
+
+  return { id: user._id, email: user.email, banned: false };
+};
+
 module.exports = {
   register,
   login,
   verifyEmail,
   resendVerificationCode,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  banUser,
+  unbanUser,
 };

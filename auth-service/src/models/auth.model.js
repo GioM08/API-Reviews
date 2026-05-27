@@ -51,6 +51,19 @@ const authSchema = new mongoose.Schema({
   userCreatedPublished: {
     type: Boolean,
     default: false
+  },
+
+  banned: {
+    type: Boolean,
+    default: false
+  },
+  bannedAt: {
+    type: Date,
+    default: null
+  },
+  banReason: {
+    type: String,
+    default: null
   }
 }, { timestamps: true });
 

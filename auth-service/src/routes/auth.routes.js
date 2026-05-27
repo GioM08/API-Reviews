@@ -7,8 +7,12 @@ const {
   verifyEmail,
   resendVerificationCode,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  banUser,
+  unbanUser,
 } = require("../controllers/auth.controller");
+const authMiddleware = require("../middlewares/auth.middleware");
+const adminMiddleware = require("../middlewares/admin.middleware");
 
 const router = express.Router();
 
@@ -167,5 +171,9 @@ router.post("/forgot-password", forgotPassword);
  *         description: Código inválido, expirado o datos incorrectos
  */
 router.post("/reset-password", resetPassword);
+
+// Admin — gestión de usuarios
+router.patch("/users/:id/ban", authMiddleware, adminMiddleware, banUser);
+router.patch("/users/:id/unban", authMiddleware, adminMiddleware, unbanUser);
 
 module.exports = router;

@@ -1,7 +1,8 @@
 const express = require('express');
 const {
   healthCheck, createReview, getReviews, getRestaurantStats, getSegmentedScores,
-  voteReview, reportReview, getReportedReviews, hideReview, deleteReview,
+  voteReview, reportReview, getReportReasons, getReportedReviews, getReviewReports,
+  hideReview, unhideReview, deleteReview, getAdminStats,
   toggleLike, getComments, addComment, deleteComment,
 } = require('../controllers/review.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
@@ -187,6 +188,8 @@ router.post('/:id/vote', authMiddleware, voteReview);
  */
 router.post('/:id/report', authMiddleware, reportReview);
 
+router.get('/report-reasons', getReportReasons);
+
 // Likes (toggle: 1 like por perfil por reseña)
 /**
  * @openapi
@@ -290,67 +293,11 @@ router.post('/:id/comments', authMiddleware, addComment);
 router.delete('/:id/comments/:commentId', authMiddleware, deleteComment);
 
 // Admin
-/**
- * @openapi
- * /api/reviews/reported:
- *   get:
- *     summary: Obtiene la lista de reseñas reportadas (Solo Admins)
- *     tags:
- *       - Administrador
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de reseñas reportadas
- *       403:
- *         description: Acceso denegado (requiere permisos de Admin)
- */
+router.get('/admin/stats', authMiddleware, adminMiddleware, getAdminStats);
 router.get('/reported', authMiddleware, adminMiddleware, getReportedReviews);
-
-/**
- * @openapi
- * /api/reviews/{id}/hide:
- *   patch:
- *     summary: Oculta una reseña específica (Solo Admins)
- *     tags:
- *       - Administrador
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Reseña ocultada correctamente
- *       403:
- *         description: Acceso denegado (requiere permisos de Admin)
- */
+router.get('/:id/reports', authMiddleware, adminMiddleware, getReviewReports);
 router.patch('/:id/hide', authMiddleware, adminMiddleware, hideReview);
-
-/**
- * @openapi
- * /api/reviews/{id}:
- *   delete:
- *     summary: Elimina permanentemente una reseña (Solo Admins)
- *     tags:
- *       - Administrador
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Reseña eliminada correctamente
- *       403:
- *         description: Acceso denegado (requiere permisos de Admin)
- */
+router.patch('/:id/unhide', authMiddleware, adminMiddleware, unhideReview);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteReview);
 
 module.exports = router;

@@ -39,7 +39,8 @@ const createTables = async () => {
       id SERIAL PRIMARY KEY,
       review_id INTEGER NOT NULL REFERENCES reviews(id),
       user_id VARCHAR(255) NOT NULL,
-      reason TEXT DEFAULT '',
+      reason VARCHAR(50) DEFAULT 'other',
+      comment TEXT DEFAULT NULL,
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE (review_id, user_id)
     )
@@ -82,6 +83,8 @@ const createTables = async () => {
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0`);
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS detailed_ratings JSONB DEFAULT NULL`);
   await pool.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS amenities JSONB DEFAULT '[]'`);
+  await pool.query(`ALTER TABLE reports ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT NULL`);
+  await pool.query(`ALTER TABLE reports ALTER COLUMN reason SET DEFAULT 'other'`);
 };
 
 module.exports = { createTables };

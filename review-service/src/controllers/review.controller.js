@@ -1,4 +1,5 @@
 const service = require('../services/review.service');
+const { VALID_REPORT_REASONS } = service;
 const { z } = require('zod');
 
 const mediaItemSchema = z.object({
@@ -33,7 +34,11 @@ const voteSchema = z.object({
 });
 
 const reportSchema = z.object({
-  reason: z.string().optional(),
+  reason: z.enum(
+    ['inappropriate_content', 'misleading_content', 'false_information', 'spam', 'hate_speech', 'harassment', 'other'],
+    { error: 'Razón inválida' }
+  ).default('other'),
+  comment: z.string().max(500).optional(),
 });
 
 const healthCheck = (req, res) => {
@@ -80,13 +85,17 @@ const voteReview = async (req, res) => {
 
 const reportReview = async (req, res) => {
   try {
-    const { reason } = reportSchema.parse(req.body);
+    const { reason, comment } = reportSchema.parse(req.body);
     const reviewId = parseInt(req.params.id);
-    await service.reportReview(reviewId, req.user.id, reason);
+    await service.reportReview(reviewId, req.user.id, reason, comment);
     res.json({ message: 'Reseña reportada' });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+};
+
+const getReportReasons = (_req, res) => {
+  res.json({ reasons: VALID_REPORT_REASONS });
 };
 
 // Admin
@@ -96,6 +105,16 @@ const getReportedReviews = async (req, res) => {
     res.json(reviews);
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+};
+
+const getReviewReports = async (req, res) => {
+  try {
+    const reviewId = parseInt(req.params.id);
+    const data = await service.getReviewReports(reviewId);
+    res.json(data);
+  } catch (e) {
+    res.status(404).json({ error: e.message });
   }
 };
 
@@ -109,6 +128,16 @@ const hideReview = async (req, res) => {
   }
 };
 
+const unhideReview = async (req, res) => {
+  try {
+    const reviewId = parseInt(req.params.id);
+    const review = await service.unhideReview(reviewId);
+    res.json(review);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
 const deleteReview = async (req, res) => {
   try {
     const reviewId = parseInt(req.params.id);
@@ -116,6 +145,15 @@ const deleteReview = async (req, res) => {
     res.json({ message: 'Reseña eliminada' });
   } catch (e) {
     res.status(400).json({ error: e.message });
+  }
+};
+
+const getAdminStats = async (req, res) => {
+  try {
+    const stats = await service.getAdminStats();
+    res.json(stats);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 };
 
@@ -194,9 +232,13 @@ module.exports = {
   getSegmentedScores,
   voteReview,
   reportReview,
+  getReportReasons,
   getReportedReviews,
+  getReviewReports,
   hideReview,
+  unhideReview,
   deleteReview,
+  getAdminStats,
   toggleLike,
   getComments,
   addComment,

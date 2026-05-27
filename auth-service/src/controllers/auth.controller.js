@@ -86,6 +86,25 @@ const registerAdmin = async (req, res) => {
   }
 };
 
+const banUser = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const result = await service.banUser(req.params.id, reason);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+const unbanUser = async (req, res) => {
+  try {
+    const result = await service.unbanUser(req.params.id);
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -94,5 +113,7 @@ module.exports = {
   verifyEmail,
   resendVerificationCode,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  banUser,
+  unbanUser,
 };
