@@ -1,0 +1,4466 @@
+{
+  "collection": {
+    "_": {
+      "postman_id": "dd2ea2ed-a214-485b-8230-5609372d99a2",
+      "exporter_id": "52570294",
+      "collection_link": "https://go.postman.co/collection/52570294-dd2ea2ed-a214-485b-8230-5609372d99a2?source=collection_link"
+    },
+    "item": [
+      {
+        "id": "ec1cba90-8a0b-4198-95b5-55517cb945cd",
+        "name": "01 - Auth Service",
+        "item": [
+          {
+            "id": "f6c9d1d5-f49b-4930-b3c6-353d1d4d626d",
+            "name": "00 - Health Check and Setup",
+            "request": {
+              "url": {
+                "path": [
+                  "health"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "GET"
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "id": "e80ebc03-c0fe-45ab-91f7-bbc2c9b4b1e2",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "const runId = Date.now();\r",
+                    "\r",
+                    "pm.environment.set(\"runId\", runId);\r",
+                    "pm.environment.set(\"adminEmail\", `admin.${runId}@foodranker.test`);\r",
+                    "pm.environment.set(\"unknownEmail\", `unknown.${runId}@foodranker.test`);\r",
+                    "\r",
+                    "pm.environment.unset(\"adminId\");\r",
+                    "pm.environment.unset(\"adminToken\");"
+                  ],
+                  "_lastExecutionId": "e942e19d-d04d-408e-8ad9-ece7c7ee484a"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "id": "ff30aefe-c94d-4d0f-9f94-05c12e5625b6",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 200\", function () {\r",
+                    "  pm.response.to.have.status(200);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe responder status ok\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "  pm.expect(json.status).to.eql(\"ok\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "0ee885fe-d656-4f62-b669-4a978b1f0426"
+                }
+              }
+            ]
+          },
+          {
+            "id": "0f39a459-552c-4347-a312-6671cc3bf009",
+            "name": "01 - Register Admin Successfully",
+            "request": {
+              "url": {
+                "path": [
+                  "register",
+                  "admin"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "x-admin-secret",
+                  "value": "{{adminSecret}}"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "prerequest",
+                "script": {
+                  "id": "1d8c1676-f3b0-47d2-b3f7-c278cee069e7",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    ""
+                  ],
+                  "_lastExecutionId": "7cfa8274-42f2-4151-ba54-1944e486bb6f"
+                }
+              },
+              {
+                "listen": "test",
+                "script": {
+                  "id": "9c98c4a0-90f4-4ebb-b529-b27ce9472d5a",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 201\", function () {\r",
+                    "  pm.response.to.have.status(201);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe regresar datos del admin\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"id\");\r",
+                    "  pm.expect(json.email).to.eql(pm.environment.get(\"adminEmail\"));\r",
+                    "  pm.expect(json.role).to.eql(\"admin\");\r",
+                    "  pm.expect(json.emailVerified).to.eql(true);\r",
+                    "\r",
+                    "  pm.environment.set(\"adminId\", json.id);\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "ccb711d8-b4e5-4e09-93e7-7ced0730cc40"
+                }
+              }
+            ]
+          },
+          {
+            "id": "953a967a-241a-49f2-a29a-96fc27a7dcf5",
+            "name": "02 - Login Admin Successfully",
+            "request": {
+              "url": {
+                "path": [
+                  "login"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "ce28735d-e915-4160-841f-07d5d64197c4",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 200\", function () {\r",
+                    "  pm.response.to.have.status(200);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe regresar un token\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"token\");\r",
+                    "  pm.expect(json.token).to.be.a(\"string\");\r",
+                    "  pm.expect(json.token.length).to.be.greaterThan(20);\r",
+                    "\r",
+                    "  pm.environment.set(\"adminToken\", json.token);\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "8178102f-9f4b-46b2-8ac6-80cb897bee7b"
+                }
+              }
+            ]
+          },
+          {
+            "id": "5c9274c0-9568-49e5-b520-2f967ae2f03b",
+            "name": "03 - Register Admin Duplicate Email",
+            "request": {
+              "url": {
+                "path": [
+                  "register",
+                  "admin"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "x-admin-secret",
+                  "value": "{{adminSecret}}"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "e3989366-20c9-4c24-a77e-9d239c5b0e8b",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar que el usuario ya existe\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Usuario ya existe\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "177e5847-47ce-438f-9e0b-f8ec7b68fadc"
+                }
+              }
+            ]
+          },
+          {
+            "id": "55ad1223-0041-475c-a5ad-a57a7df5cc28",
+            "name": "04 - Register Admin Wrong Secret",
+            "request": {
+              "url": {
+                "path": [
+                  "register",
+                  "admin"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "x-admin-secret",
+                  "value": "wrong-secret"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"admin.wrong.{{runId}}@foodranker.test\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "f8931c38-b11a-4f33-aa88-2d6fd90a4369",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 403\", function () {\r",
+                    "  pm.response.to.have.status(403);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar acceso denegado\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Acceso denegado\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "7e683e71-28ce-4e11-8676-356378adc05b"
+                }
+              }
+            ]
+          },
+          {
+            "id": "69f28d43-a471-4e55-95df-290bcdfd2f0f",
+            "name": "05 - Login Wrong Password",
+            "request": {
+              "url": {
+                "path": [
+                  "login"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"Wrong123!\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "0ab055ca-1e86-4f0f-8b40-f4cea45384cd",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar credenciales inválidas\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Credenciales inválidas\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "9fd1c9b4-48f0-49e6-be59-6066f764ceae"
+                }
+              }
+            ]
+          },
+          {
+            "id": "27788bfb-6239-4507-805e-42004bd3d184",
+            "name": "06 - Login Unknown User",
+            "request": {
+              "url": {
+                "path": [
+                  "login"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{unknownEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "900fd4de-9e35-4e5a-a088-4de020925053",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar usuario no encontrado\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Usuario no encontrado\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "aebc8643-c640-4762-b948-bb204ee635de"
+                }
+              }
+            ]
+          },
+          {
+            "id": "e409bc93-1ffd-45ab-a81c-c1bd3334663b",
+            "name": "07 - Login Invalid Email Format",
+            "request": {
+              "url": {
+                "path": [
+                  "login"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"correo-invalido\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "75540e81-1d8d-4714-9846-4236f57e8115",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe regresar error de validación\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Ingresa un correo válido\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "b9ec0639-ad3c-4a8b-b77a-24a85e6e31f6"
+                }
+              }
+            ]
+          },
+          {
+            "id": "8c5a039a-f200-4023-abd8-1c4615decf42",
+            "name": "08 - Ban User Without Token",
+            "request": {
+              "url": {
+                "path": [
+                  "users",
+                  "{{adminId}}",
+                  "ban"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "PATCH",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"reason\": \"Prueba sin token\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "b0c0ce89-2620-416c-831d-549babcada99",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 401\", function () {\r",
+                    "  pm.response.to.have.status(401);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "2479d4f9-c85f-429c-ad90-4bf627866b2f"
+                }
+              }
+            ]
+          },
+          {
+            "id": "1f87289d-fb19-457a-b4ec-d6c291a99798",
+            "name": "09 - Ban User With Invalid Token",
+            "request": {
+              "url": {
+                "path": [
+                  "users",
+                  "{{adminId}}",
+                  "ban"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer token-falso"
+                }
+              ],
+              "method": "PATCH",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "c45f48be-0f23-47f1-aadb-0ad718cf6cf2",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 401\", function () {\r",
+                    "  pm.response.to.have.status(401);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar token inválido\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"Token inválido\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "a4dc865e-3596-46a2-acae-a221d760de63"
+                }
+              }
+            ]
+          },
+          {
+            "id": "ea328515-3bbb-4aed-9062-60077f2d9cb1",
+            "name": "10 - Ban Admin Should Fail",
+            "request": {
+              "url": {
+                "path": [
+                  "users",
+                  "{{adminId}}",
+                  "ban"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{adminToken}}"
+                }
+              ],
+              "method": "PATCH",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "2c1e1166-2cd8-4782-bcbb-40c942017aae",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar que no se puede banear a un administrador\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"No se puede banear a un administrador\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "32738492-a412-4c4b-ac11-07ba5e291582"
+                }
+              }
+            ]
+          },
+          {
+            "id": "bab6ee29-cca2-4394-a1c3-fd24bab070e4",
+            "name": "11 - Forgot Password Unknown User",
+            "request": {
+              "url": {
+                "path": [
+                  "forgot-password"
+                ],
+                "host": [
+                  "{{authBaseUrl}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\r\n  \"email\": \"{{unknownEmail}}\"\r\n}",
+                "options": {
+                  "raw": {
+                    "language": "json"
+                  }
+                }
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "b29a79ec-00ec-43d5-a7ce-c0635a40c985",
+                  "type": "text/javascript",
+                  "packages": {},
+                  "exec": [
+                    "pm.test(\"Debe responder 400\", function () {\r",
+                    "  pm.response.to.have.status(400);\r",
+                    "});\r",
+                    "\r",
+                    "pm.test(\"Debe indicar que no existe cuenta registrada\", function () {\r",
+                    "  const json = pm.response.json();\r",
+                    "\r",
+                    "  pm.expect(json).to.have.property(\"error\");\r",
+                    "  pm.expect(json.error).to.include(\"No existe una cuenta registrada con ese correo\");\r",
+                    "});"
+                  ],
+                  "_lastExecutionId": "90f253ab-72e8-41d6-b370-97cb679db032"
+                }
+              }
+            ]
+          }
+        ],
+        "event": []
+      }
+    ],
+    "event": [],
+    "variable": [],
+    "info": {
+      "_postman_id": "dd2ea2ed-a214-485b-8230-5609372d99a2",
+      "name": "FoodRanker API Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "_": {
+      "postman_variable_scope": "environment"
+    },
+    "id": "aa95c65e-0f3c-42e7-b868-af07a10c92e6",
+    "name": "FoodRanker Local",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://localhost:3000/api/auth",
+        "key": "authBaseUrl"
+      },
+      {
+        "type": "any",
+        "value": "R00tS3cr3t",
+        "key": "adminSecret"
+      },
+      {
+        "type": "any",
+        "value": "Test12345!",
+        "key": "testPassword"
+      },
+      {
+        "type": "any",
+        "value": "NewTest12345!",
+        "key": "newPassword"
+      },
+      {
+        "type": "any",
+        "value": 1780203085217,
+        "key": "runId"
+      },
+      {
+        "type": "any",
+        "value": "admin.1780203085217@foodranker.test",
+        "key": "adminEmail"
+      },
+      {
+        "type": "any",
+        "value": "unknown.1780203085217@foodranker.test",
+        "key": "unknownEmail"
+      },
+      {
+        "type": "any",
+        "value": "6a1bbe4cf125c28fba135782",
+        "key": "adminId"
+      },
+      {
+        "type": "any",
+        "value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMWJiZTRjZjEyNWMyOGZiYTEzNTc4MiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4MDIwMzA4NSwiZXhwIjoxNzgwMjA2Njg1fQ.XKaIFVgLrpon0ACIq1eOVWozSuCxRI8J0n0QDYhIXnP41PvBar9LH3f0zuFlLiRdyRtrKvkk1WPT4BvX3Q624_1VOwk2B16nw0-PqSk6EF2SwuZDBnLi6LJOdFFelP0yKc3W-MU1fna9h84y1U0I42Jj3_SDVRlt_g8PUwGWDA1veu_MSwcOuXR0LcCnARNMpyyISXQU8kuGq4QTPW-OVFyUlGRYzDkS9rVre53cgbaYatKSvzwYzzp7oq1KZlNuyQaPSD_rPAqNBD2aGKDIB4ZweV-DIclOVkrA_wc1e7H502BKKlpWM3v05Vs_PBttKGxcoVAaZCfeJzPPy8qUyA",
+        "key": "adminToken"
+      }
+    ]
+  },
+  "globals": {
+    "id": "90f2325b-c962-4d23-a93f-6ff6c5395fcb",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 14,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 24,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 23.666666666666668,
+      "responseMin": 3,
+      "responseMax": 106,
+      "responseSd": 32.23696980521312,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1780203085202,
+      "completed": 1780203086471
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 12,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "298e6873-d63a-4946-9ccf-60e789c08fca",
+          "httpRequestId": "21f868e5-e035-461e-90c9-d56e51535cc8"
+        },
+        "item": {
+          "id": "f6c9d1d5-f49b-4930-b3c6-353d1d4d626d",
+          "name": "00 - Health Check and Setup",
+          "request": {
+            "url": {
+              "path": [
+                "health"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "e80ebc03-c0fe-45ab-91f7-bbc2c9b4b1e2",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "const runId = Date.now();\r",
+                  "\r",
+                  "pm.environment.set(\"runId\", runId);\r",
+                  "pm.environment.set(\"adminEmail\", `admin.${runId}@foodranker.test`);\r",
+                  "pm.environment.set(\"unknownEmail\", `unknown.${runId}@foodranker.test`);\r",
+                  "\r",
+                  "pm.environment.unset(\"adminId\");\r",
+                  "pm.environment.unset(\"adminToken\");"
+                ],
+                "_lastExecutionId": "e942e19d-d04d-408e-8ad9-ece7c7ee484a"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "ff30aefe-c94d-4d0f-9f94-05c12e5625b6",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "0ee885fe-d656-4f62-b669-4a978b1f0426"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "health"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3428520e-d51f-4a3f-9ecc-72fbb4a81d31",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "212a46ad-0437-4f03-98c1-737c7f2720d6",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "15"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"f-VaSQ4oDUiZblZNAEkkN+sX+q3Sg\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:24 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              111,
+              107,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 30,
+          "responseSize": 15
+        },
+        "id": "f6c9d1d5-f49b-4930-b3c6-353d1d4d626d",
+        "assertions": [
+          {
+            "assertion": "Debe responder 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe responder status ok",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "45b19afb-b335-4226-932f-e4a1e6dddae7",
+          "length": 12,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "ea5a6710-1271-4046-9bdb-adc7129650a1"
+        },
+        "item": {
+          "id": "0f39a459-552c-4347-a312-6671cc3bf009",
+          "name": "01 - Register Admin Successfully",
+          "request": {
+            "url": {
+              "path": [
+                "register",
+                "admin"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "1d8c1676-f3b0-47d2-b3f7-c278cee069e7",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  ""
+                ],
+                "_lastExecutionId": "7cfa8274-42f2-4151-ba54-1944e486bb6f"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "9c98c4a0-90f4-4ebb-b529-b27ce9472d5a",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar datos del admin\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(json.email).to.eql(pm.environment.get(\"adminEmail\"));\r",
+                  "  pm.expect(json.role).to.eql(\"admin\");\r",
+                  "  pm.expect(json.emailVerified).to.eql(true);\r",
+                  "\r",
+                  "  pm.environment.set(\"adminId\", json.id);\r",
+                  "});"
+                ],
+                "_lastExecutionId": "ccb711d8-b4e5-4e09-93e7-7ced0730cc40"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "register",
+              "admin"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-admin-secret",
+              "value": "R00tS3cr3t"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1564cdf8-f122-4e50-bf6a-c48028799759",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "83",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"admin.1780203085217@foodranker.test\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "54717fc9-dbbc-4340-8661-dc08ea039514",
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "115"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"73-XHOngkoE9BCEBP9QZIhTfPCtcqM\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:24 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              49,
+              98,
+              98,
+              101,
+              52,
+              99,
+              102,
+              49,
+              50,
+              53,
+              99,
+              50,
+              56,
+              102,
+              98,
+              97,
+              49,
+              51,
+              53,
+              55,
+              56,
+              50,
+              34,
+              44,
+              34,
+              101,
+              109,
+              97,
+              105,
+              108,
+              34,
+              58,
+              34,
+              97,
+              100,
+              109,
+              105,
+              110,
+              46,
+              49,
+              55,
+              56,
+              48,
+              50,
+              48,
+              51,
+              48,
+              56,
+              53,
+              50,
+              49,
+              55,
+              64,
+              102,
+              111,
+              111,
+              100,
+              114,
+              97,
+              110,
+              107,
+              101,
+              114,
+              46,
+              116,
+              101,
+              115,
+              116,
+              34,
+              44,
+              34,
+              114,
+              111,
+              108,
+              101,
+              34,
+              58,
+              34,
+              97,
+              100,
+              109,
+              105,
+              110,
+              34,
+              44,
+              34,
+              101,
+              109,
+              97,
+              105,
+              108,
+              86,
+              101,
+              114,
+              105,
+              102,
+              105,
+              101,
+              100,
+              34,
+              58,
+              116,
+              114,
+              117,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 106,
+          "responseSize": 115
+        },
+        "id": "0f39a459-552c-4347-a312-6671cc3bf009",
+        "assertions": [
+          {
+            "assertion": "Debe responder 201",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe regresar datos del admin",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "47dd9381-bc1f-4ddf-8915-f1d02591112c",
+          "length": 12,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "bca717bc-aee5-4651-bcec-45edcd82dacd"
+        },
+        "item": {
+          "id": "953a967a-241a-49f2-a29a-96fc27a7dcf5",
+          "name": "02 - Login Admin Successfully",
+          "request": {
+            "url": {
+              "path": [
+                "login"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "ce28735d-e915-4160-841f-07d5d64197c4",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar un token\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"token\");\r",
+                  "  pm.expect(json.token).to.be.a(\"string\");\r",
+                  "  pm.expect(json.token.length).to.be.greaterThan(20);\r",
+                  "\r",
+                  "  pm.environment.set(\"adminToken\", json.token);\r",
+                  "});"
+                ],
+                "_lastExecutionId": "8178102f-9f4b-46b2-8ac6-80cb897bee7b"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "4acf0b11-edf0-4833-8aac-74a9fcdcec7d",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "83",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"admin.1780203085217@foodranker.test\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "da460c78-ea37-497f-8936-1cd23588f4a1",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "502"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"1f6-x8HqCba/ZGZjE7ZUW6Er9MgU5Is\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              116,
+              111,
+              107,
+              101,
+              110,
+              34,
+              58,
+              34,
+              101,
+              121,
+              74,
+              104,
+              98,
+              71,
+              99,
+              105,
+              79,
+              105,
+              74,
+              83,
+              85,
+              122,
+              73,
+              49,
+              78,
+              105,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              67,
+              73,
+              54,
+              73,
+              107,
+              112,
+              88,
+              86,
+              67,
+              74,
+              57,
+              46,
+              101,
+              121,
+              74,
+              112,
+              90,
+              67,
+              73,
+              54,
+              73,
+              106,
+              90,
+              104,
+              77,
+              87,
+              74,
+              105,
+              90,
+              84,
+              82,
+              106,
+              90,
+              106,
+              69,
+              121,
+              78,
+              87,
+              77,
+              121,
+              79,
+              71,
+              90,
+              105,
+              89,
+              84,
+              69,
+              122,
+              78,
+              84,
+              99,
+              52,
+              77,
+              105,
+              73,
+              115,
+              73,
+              110,
+              74,
+              118,
+              98,
+              71,
+              85,
+              105,
+              79,
+              105,
+              74,
+              104,
+              90,
+              71,
+              49,
+              112,
+              98,
+              105,
+              73,
+              115,
+              73,
+              109,
+              108,
+              104,
+              100,
+              67,
+              73,
+              54,
+              77,
+              84,
+              99,
+              52,
+              77,
+              68,
+              73,
+              119,
+              77,
+              122,
+              65,
+              52,
+              78,
+              83,
+              119,
+              105,
+              90,
+              88,
+              104,
+              119,
+              73,
+              106,
+              111,
+              120,
+              78,
+              122,
+              103,
+              119,
+              77,
+              106,
+              65,
+              50,
+              78,
+              106,
+              103,
+              49,
+              102,
+              81,
+              46,
+              88,
+              75,
+              97,
+              73,
+              70,
+              86,
+              103,
+              76,
+              114,
+              112,
+              111,
+              110,
+              48,
+              65,
+              67,
+              73,
+              113,
+              49,
+              101,
+              79,
+              86,
+              87,
+              111,
+              122,
+              83,
+              117,
+              67,
+              120,
+              82,
+              73,
+              56,
+              74,
+              48,
+              110,
+              48,
+              81,
+              68,
+              89,
+              104,
+              73,
+              88,
+              110,
+              80,
+              52,
+              49,
+              80,
+              118,
+              66,
+              97,
+              114,
+              57,
+              76,
+              72,
+              51,
+              102,
+              48,
+              122,
+              117,
+              70,
+              108,
+              76,
+              105,
+              82,
+              100,
+              121,
+              82,
+              116,
+              114,
+              75,
+              118,
+              107,
+              107,
+              49,
+              87,
+              80,
+              84,
+              52,
+              66,
+              118,
+              88,
+              51,
+              81,
+              54,
+              50,
+              52,
+              95,
+              49,
+              86,
+              79,
+              119,
+              107,
+              50,
+              66,
+              49,
+              54,
+              110,
+              119,
+              48,
+              45,
+              80,
+              113,
+              83,
+              107,
+              54,
+              69,
+              70,
+              50,
+              83,
+              119,
+              117,
+              90,
+              68,
+              66,
+              110,
+              76,
+              105,
+              54,
+              76,
+              74,
+              79,
+              100,
+              70,
+              70,
+              101,
+              108,
+              80,
+              48,
+              121,
+              75,
+              99,
+              51,
+              87,
+              45,
+              77,
+              85,
+              49,
+              102,
+              110,
+              97,
+              57,
+              104,
+              56,
+              52,
+              121,
+              49,
+              85,
+              48,
+              73,
+              52,
+              50,
+              74,
+              106,
+              51,
+              95,
+              83,
+              68,
+              86,
+              82,
+              108,
+              116,
+              95,
+              103,
+              56,
+              80,
+              85,
+              119,
+              71,
+              87,
+              68,
+              65,
+              49,
+              118,
+              101,
+              117,
+              95,
+              77,
+              83,
+              119,
+              99,
+              79,
+              117,
+              88,
+              82,
+              48,
+              76,
+              99,
+              67,
+              110,
+              65,
+              82,
+              78,
+              77,
+              112,
+              121,
+              121,
+              73,
+              83,
+              88,
+              81,
+              85,
+              56,
+              107,
+              117,
+              71,
+              113,
+              52,
+              81,
+              84,
+              80,
+              87,
+              45,
+              79,
+              86,
+              70,
+              121,
+              85,
+              108,
+              71,
+              82,
+              89,
+              122,
+              68,
+              107,
+              83,
+              57,
+              114,
+              86,
+              114,
+              101,
+              53,
+              51,
+              99,
+              103,
+              98,
+              97,
+              89,
+              97,
+              116,
+              75,
+              83,
+              118,
+              122,
+              119,
+              89,
+              122,
+              122,
+              112,
+              55,
+              111,
+              113,
+              49,
+              75,
+              90,
+              108,
+              78,
+              117,
+              121,
+              81,
+              97,
+              80,
+              83,
+              68,
+              95,
+              114,
+              80,
+              65,
+              113,
+              78,
+              66,
+              68,
+              50,
+              97,
+              71,
+              75,
+              68,
+              73,
+              66,
+              52,
+              90,
+              119,
+              101,
+              86,
+              45,
+              68,
+              73,
+              99,
+              108,
+              79,
+              86,
+              107,
+              114,
+              65,
+              95,
+              119,
+              99,
+              49,
+              101,
+              55,
+              72,
+              53,
+              48,
+              50,
+              66,
+              75,
+              75,
+              108,
+              112,
+              87,
+              77,
+              51,
+              118,
+              48,
+              53,
+              86,
+              115,
+              95,
+              80,
+              66,
+              116,
+              116,
+              75,
+              71,
+              120,
+              99,
+              111,
+              86,
+              65,
+              97,
+              90,
+              67,
+              102,
+              101,
+              74,
+              122,
+              80,
+              80,
+              121,
+              56,
+              113,
+              85,
+              121,
+              65,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 65,
+          "responseSize": 502
+        },
+        "id": "953a967a-241a-49f2-a29a-96fc27a7dcf5",
+        "assertions": [
+          {
+            "assertion": "Debe responder 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe regresar un token",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "563f60ef-d91e-4889-a478-0b1e77e8d303",
+          "length": 12,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "8df1aeb7-3993-4932-b3f3-2f8e4e73af16"
+        },
+        "item": {
+          "id": "5c9274c0-9568-49e5-b520-2f967ae2f03b",
+          "name": "03 - Register Admin Duplicate Email",
+          "request": {
+            "url": {
+              "path": [
+                "register",
+                "admin"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "e3989366-20c9-4c24-a77e-9d239c5b0e8b",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que el usuario ya existe\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Usuario ya existe\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "177e5847-47ce-438f-9e0b-f8ec7b68fadc"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "register",
+              "admin"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "x-admin-secret",
+              "value": "R00tS3cr3t"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "177bc133-4b4d-4ded-88ba-14198909b3de",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "83",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"admin.1780203085217@foodranker.test\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "df2f3542-49f7-4ce0-86ba-145ce799f5c5",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "29"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"1d-VCzDWK6CaWGYgjnHkqmiU/LV5iA\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              85,
+              115,
+              117,
+              97,
+              114,
+              105,
+              111,
+              32,
+              121,
+              97,
+              32,
+              101,
+              120,
+              105,
+              115,
+              116,
+              101,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 29
+        },
+        "id": "5c9274c0-9568-49e5-b520-2f967ae2f03b",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar que el usuario ya existe",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "4ac29440-e4ff-4998-bb87-f0961f5c64b4",
+          "length": 12,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "a6ce6434-10b0-4d00-9fd2-92c550e18141"
+        },
+        "item": {
+          "id": "55ad1223-0041-475c-a5ad-a57a7df5cc28",
+          "name": "04 - Register Admin Wrong Secret",
+          "request": {
+            "url": {
+              "path": [
+                "register",
+                "admin"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "wrong-secret"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"admin.wrong.{{runId}}@foodranker.test\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f8931c38-b11a-4f33-aa88-2d6fd90a4369",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 403\", function () {\r",
+                  "  pm.response.to.have.status(403);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar acceso denegado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Acceso denegado\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "7e683e71-28ce-4e11-8676-356378adc05b"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "register",
+              "admin"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "x-admin-secret",
+              "value": "wrong-secret"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "91328cfc-b9db-4fdd-8a2e-444a84c31b6f",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "89",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"admin.wrong.1780203085217@foodranker.test\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "5084282a-68b4-46db-8f29-4885f0f08d33",
+          "status": "Forbidden",
+          "code": 403,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "27"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"1b-BwwM1Wx9iyo1FNJKEnln/WFjx8Q\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              65,
+              99,
+              99,
+              101,
+              115,
+              111,
+              32,
+              100,
+              101,
+              110,
+              101,
+              103,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 27
+        },
+        "id": "55ad1223-0041-475c-a5ad-a57a7df5cc28",
+        "assertions": [
+          {
+            "assertion": "Debe responder 403",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar acceso denegado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "72390c20-5f25-46a0-adda-0a06841de88c",
+          "length": 12,
+          "cycles": 1,
+          "position": 5,
+          "iteration": 0,
+          "httpRequestId": "43901c3b-0853-4b51-a86b-aaba448ddf02"
+        },
+        "item": {
+          "id": "69f28d43-a471-4e55-95df-290bcdfd2f0f",
+          "name": "05 - Login Wrong Password",
+          "request": {
+            "url": {
+              "path": [
+                "login"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"Wrong123!\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "0ab055ca-1e86-4f0f-8b40-f4cea45384cd",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar credenciales inválidas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Credenciales inválidas\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "9fd1c9b4-48f0-49e6-be59-6066f764ceae"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "2518cb68-ef81-4aaa-aeeb-9a7834575303",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "82",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"admin.1780203085217@foodranker.test\",\r\n  \"password\": \"Wrong123!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "d146825a-aee1-4bde-a5d0-08be4b071da4",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "35"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"23-UHCIAFM/swaAglwgDKKCnq2spSQ\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              67,
+              114,
+              101,
+              100,
+              101,
+              110,
+              99,
+              105,
+              97,
+              108,
+              101,
+              115,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              97,
+              115,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 52,
+          "responseSize": 35
+        },
+        "id": "69f28d43-a471-4e55-95df-290bcdfd2f0f",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar credenciales inválidas",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "995fca22-50f8-4703-a0e4-c3063cf2078f",
+          "length": 12,
+          "cycles": 1,
+          "position": 6,
+          "iteration": 0,
+          "httpRequestId": "04e0d990-4594-4934-9272-593262aab914"
+        },
+        "item": {
+          "id": "27788bfb-6239-4507-805e-42004bd3d184",
+          "name": "06 - Login Unknown User",
+          "request": {
+            "url": {
+              "path": [
+                "login"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{unknownEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "900fd4de-9e35-4e5a-a088-4de020925053",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar usuario no encontrado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Usuario no encontrado\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "aebc8643-c640-4762-b948-bb204ee635de"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "315c08f1-5845-46d4-8806-324e3128e964",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "85",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"unknown.1780203085217@foodranker.test\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "fb0fe136-d415-4bca-bea2-5de22a24ee8f",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "33"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"21-Ra4zKKAm/pHSYpcwYos40Np/FWo\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              85,
+              115,
+              117,
+              97,
+              114,
+              105,
+              111,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 33
+        },
+        "id": "27788bfb-6239-4507-805e-42004bd3d184",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar usuario no encontrado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "e44f7fbf-b2df-4fd9-a4ff-f37dce59046d",
+          "length": 12,
+          "cycles": 1,
+          "position": 7,
+          "iteration": 0,
+          "httpRequestId": "964f09b5-7d78-4ef6-aadd-032e49279851"
+        },
+        "item": {
+          "id": "e409bc93-1ffd-45ab-a81c-c1bd3334663b",
+          "name": "07 - Login Invalid Email Format",
+          "request": {
+            "url": {
+              "path": [
+                "login"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"correo-invalido\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "75540e81-1d8d-4714-9846-4236f57e8115",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar error de validación\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Ingresa un correo válido\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "b9ec0639-ad3c-4a8b-b77a-24a85e6e31f6"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "login"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "617f8824-f0c2-470c-930d-2736b954c261",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "63",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"correo-invalido\",\r\n  \"password\": \"Test12345!\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "4481c882-e2da-4913-b4e9-e1f832be678e",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "351"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"15f-fOLZBkTwuZTJxyAHdf7Mrx08jeA\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              91,
+              92,
+              110,
+              32,
+              32,
+              123,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              111,
+              114,
+              105,
+              103,
+              105,
+              110,
+              92,
+              34,
+              58,
+              32,
+              92,
+              34,
+              115,
+              116,
+              114,
+              105,
+              110,
+              103,
+              92,
+              34,
+              44,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              99,
+              111,
+              100,
+              101,
+              92,
+              34,
+              58,
+              32,
+              92,
+              34,
+              105,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              95,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              92,
+              34,
+              44,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              92,
+              34,
+              58,
+              32,
+              92,
+              34,
+              101,
+              109,
+              97,
+              105,
+              108,
+              92,
+              34,
+              44,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              112,
+              97,
+              116,
+              116,
+              101,
+              114,
+              110,
+              92,
+              34,
+              58,
+              32,
+              92,
+              34,
+              47,
+              94,
+              40,
+              63,
+              33,
+              92,
+              92,
+              92,
+              92,
+              46,
+              41,
+              40,
+              63,
+              33,
+              46,
+              42,
+              92,
+              92,
+              92,
+              92,
+              46,
+              92,
+              92,
+              92,
+              92,
+              46,
+              41,
+              40,
+              91,
+              65,
+              45,
+              90,
+              97,
+              45,
+              122,
+              48,
+              45,
+              57,
+              95,
+              39,
+              43,
+              92,
+              92,
+              92,
+              92,
+              45,
+              92,
+              92,
+              92,
+              92,
+              46,
+              93,
+              42,
+              41,
+              91,
+              65,
+              45,
+              90,
+              97,
+              45,
+              122,
+              48,
+              45,
+              57,
+              95,
+              43,
+              45,
+              93,
+              64,
+              40,
+              91,
+              65,
+              45,
+              90,
+              97,
+              45,
+              122,
+              48,
+              45,
+              57,
+              93,
+              91,
+              65,
+              45,
+              90,
+              97,
+              45,
+              122,
+              48,
+              45,
+              57,
+              92,
+              92,
+              92,
+              92,
+              45,
+              93,
+              42,
+              92,
+              92,
+              92,
+              92,
+              46,
+              41,
+              43,
+              91,
+              65,
+              45,
+              90,
+              97,
+              45,
+              122,
+              93,
+              123,
+              50,
+              44,
+              125,
+              36,
+              47,
+              92,
+              34,
+              44,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              112,
+              97,
+              116,
+              104,
+              92,
+              34,
+              58,
+              32,
+              91,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              101,
+              109,
+              97,
+              105,
+              108,
+              92,
+              34,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              93,
+              44,
+              92,
+              110,
+              32,
+              32,
+              32,
+              32,
+              92,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              92,
+              34,
+              58,
+              32,
+              92,
+              34,
+              73,
+              110,
+              103,
+              114,
+              101,
+              115,
+              97,
+              32,
+              117,
+              110,
+              32,
+              99,
+              111,
+              114,
+              114,
+              101,
+              111,
+              32,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              92,
+              34,
+              92,
+              110,
+              32,
+              32,
+              125,
+              92,
+              110,
+              93,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 351
+        },
+        "id": "e409bc93-1ffd-45ab-a81c-c1bd3334663b",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe regresar error de validación",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "2a80f188-c74e-401b-92a4-962a31723052",
+          "length": 12,
+          "cycles": 1,
+          "position": 8,
+          "iteration": 0,
+          "httpRequestId": "6e522b76-2c44-4181-bcaa-d9a537bcf711"
+        },
+        "item": {
+          "id": "8c5a039a-f200-4023-abd8-1c4615decf42",
+          "name": "08 - Ban User Without Token",
+          "request": {
+            "url": {
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba sin token\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b0c0ce89-2620-416c-831d-549babcada99",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "2479d4f9-c85f-429c-ad90-4bf627866b2f"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "users",
+              "6a1bbe4cf125c28fba135782",
+              "ban"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "44dfd921-94ac-4bf0-b014-65c158b3f371",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "36",
+              "system": true
+            }
+          ],
+          "method": "PATCH",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"reason\": \"Prueba sin token\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "c8d12598-0c9f-4073-922f-cc902b4abf24",
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "25"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"19-vXPJbpXRoOstVc8Qt3DvHlzmwpU\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              78,
+              111,
+              32,
+              97,
+              117,
+              116,
+              111,
+              114,
+              105,
+              122,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 25
+        },
+        "id": "8c5a039a-f200-4023-abd8-1c4615decf42",
+        "assertions": [
+          {
+            "assertion": "Debe responder 401",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar no autorizado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "5f998ead-3b78-48ae-908b-a598d5725101",
+          "length": 12,
+          "cycles": 1,
+          "position": 9,
+          "iteration": 0,
+          "httpRequestId": "4ef6591e-6056-4549-9c7e-a11a1f38ab81"
+        },
+        "item": {
+          "id": "1f87289d-fb19-457a-b4ec-d6c291a99798",
+          "name": "09 - Ban User With Invalid Token",
+          "request": {
+            "url": {
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token-falso"
+              }
+            ],
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c45f48be-0f23-47f1-aadb-0ad718cf6cf2",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar token inválido\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Token inválido\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "a4dc865e-3596-46a2-acae-a221d760de63"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "users",
+              "6a1bbe4cf125c28fba135782",
+              "ban"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer token-falso"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1273c918-bfad-4ddc-af5b-162084033fcb",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "46",
+              "system": true
+            }
+          ],
+          "method": "PATCH",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "2e520a67-9d5c-4f50-b2b5-4281c6fff675",
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "27"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"1b-r9yzwxoHmCvmU6iIQXFKHT5Fea8\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              84,
+              111,
+              107,
+              101,
+              110,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 3,
+          "responseSize": 27
+        },
+        "id": "1f87289d-fb19-457a-b4ec-d6c291a99798",
+        "assertions": [
+          {
+            "assertion": "Debe responder 401",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar token inválido",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "c08a92b0-b483-4971-9fe1-27d77f036536",
+          "length": 12,
+          "cycles": 1,
+          "position": 10,
+          "iteration": 0,
+          "httpRequestId": "1a1a334a-9724-4127-949a-020ffaca5cd7"
+        },
+        "item": {
+          "id": "ea328515-3bbb-4aed-9062-60077f2d9cb1",
+          "name": "10 - Ban Admin Should Fail",
+          "request": {
+            "url": {
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "method": "PATCH",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2c1e1166-2cd8-4782-bcbb-40c942017aae",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no se puede banear a un administrador\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No se puede banear a un administrador\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "32738492-a412-4c4b-ac11-07ba5e291582"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "users",
+              "6a1bbe4cf125c28fba135782",
+              "ban"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMWJiZTRjZjEyNWMyOGZiYTEzNTc4MiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4MDIwMzA4NSwiZXhwIjoxNzgwMjA2Njg1fQ.XKaIFVgLrpon0ACIq1eOVWozSuCxRI8J0n0QDYhIXnP41PvBar9LH3f0zuFlLiRdyRtrKvkk1WPT4BvX3Q624_1VOwk2B16nw0-PqSk6EF2SwuZDBnLi6LJOdFFelP0yKc3W-MU1fna9h84y1U0I42Jj3_SDVRlt_g8PUwGWDA1veu_MSwcOuXR0LcCnARNMpyyISXQU8kuGq4QTPW-OVFyUlGRYzDkS9rVre53cgbaYatKSvzwYzzp7oq1KZlNuyQaPSD_rPAqNBD2aGKDIB4ZweV-DIclOVkrA_wc1e7H502BKKlpWM3v05Vs_PBttKGxcoVAaZCfeJzPPy8qUyA"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "5484ca2b-7c5f-45f7-9c17-969f7188099a",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "46",
+              "system": true
+            }
+          ],
+          "method": "PATCH",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "f1edacae-974a-483c-8dd3-eedca31551e7",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "49"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"31-96041uOD75tZrW9Himq5dMIxtkM\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              78,
+              111,
+              32,
+              115,
+              101,
+              32,
+              112,
+              117,
+              101,
+              100,
+              101,
+              32,
+              98,
+              97,
+              110,
+              101,
+              97,
+              114,
+              32,
+              97,
+              32,
+              117,
+              110,
+              32,
+              97,
+              100,
+              109,
+              105,
+              110,
+              105,
+              115,
+              116,
+              114,
+              97,
+              100,
+              111,
+              114,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 49
+        },
+        "id": "ea328515-3bbb-4aed-9062-60077f2d9cb1",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar que no se puede banear a un administrador",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "cd29b7fb-c0b6-4d85-b09c-7dd6741f6bca",
+          "length": 12,
+          "cycles": 1,
+          "position": 11,
+          "iteration": 0,
+          "httpRequestId": "3b08128d-1c79-4381-9cbd-05149395dd67"
+        },
+        "item": {
+          "id": "bab6ee29-cca2-4394-a1c3-fd24bab070e4",
+          "name": "11 - Forgot Password Unknown User",
+          "request": {
+            "url": {
+              "path": [
+                "forgot-password"
+              ],
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{unknownEmail}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b29a79ec-00ec-43d5-a7ce-c0635a40c985",
+                "type": "text/javascript",
+                "packages": {},
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no existe cuenta registrada\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No existe una cuenta registrada con ese correo\");\r",
+                  "});"
+                ],
+                "_lastExecutionId": "90f253ab-72e8-41d6-b370-97cb679db032"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "auth",
+              "forgot-password"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "a41a8b5c-c1fb-47a6-a1d1-c9a8ded95a0c",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "56",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\r\n  \"email\": \"unknown.1780203085217@foodranker.test\"\r\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "47b5169c-ee4f-4bee-8bca-bf8341ebb139",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "X-Powered-By",
+              "value": "Express"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "58"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"3a-p8tQhDuy8gIW2sBIMrDENG0TVqs\""
+            },
+            {
+              "key": "Date",
+              "value": "Sun, 31 May 2026 04:51:25 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              58,
+              34,
+              78,
+              111,
+              32,
+              101,
+              120,
+              105,
+              115,
+              116,
+              101,
+              32,
+              117,
+              110,
+              97,
+              32,
+              99,
+              117,
+              101,
+              110,
+              116,
+              97,
+              32,
+              114,
+              101,
+              103,
+              105,
+              115,
+              116,
+              114,
+              97,
+              100,
+              97,
+              32,
+              99,
+              111,
+              110,
+              32,
+              101,
+              115,
+              101,
+              32,
+              99,
+              111,
+              114,
+              114,
+              101,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4,
+          "responseSize": 58
+        },
+        "id": "bab6ee29-cca2-4394-a1c3-fd24bab070e4",
+        "assertions": [
+          {
+            "assertion": "Debe responder 400",
+            "skipped": false
+          },
+          {
+            "assertion": "Debe indicar que no existe cuenta registrada",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 1266
+    },
+    "failures": [],
+    "error": null
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "api-reviews",
+  "version": "1.0.0",
+  "description": "Backend de FoodRanker, una aplicación de reseñas de restaurantes donde los usuarios pueden consultar restaurantes, publicar opiniones, calificar experiencias y recibir notificaciones relacionadas con la actividad dentro de la plataforma.",
+  "main": "index.js",
+  "scripts": {
+  "test:newman": "newman run postman/FoodRanker.postman_collection.json -e postman/FoodRanker.local_environment.json --delay-request 500",
+  "test:newman:report": "newman run postman/FoodRanker.postman_collection.json -e postman/FoodRanker.local_environment.json --delay-request 500 -r cli,json --reporter-json-export reports/newman-report.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GioM08/API-Reviews.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GioM08/API-Reviews/issues"
+  },
+  "homepage": "https://github.com/GioM08/API-Reviews#readme",
+  "devDependencies": {
+    "newman": "^6.2.2"
+  }
+}

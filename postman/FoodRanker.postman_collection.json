@@ -1,0 +1,1115 @@
+{
+  "info": {
+    "_postman_id": "dd2ea2ed-a214-485b-8230-5609372d99a2",
+    "name": "FoodRanker API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "52570294",
+    "_collection_link": "https://go.postman.co/collection/52570294-dd2ea2ed-a214-485b-8230-5609372d99a2?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01 - Auth Service",
+      "item": [
+        {
+          "name": "00 - Health Check and Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const runId = Date.now();\r",
+                  "\r",
+                  "pm.environment.set(\"runId\", runId);\r",
+                  "pm.environment.set(\"adminEmail\", `admin.${runId}@foodranker.test`);\r",
+                  "pm.environment.set(\"unknownEmail\", `unknown.${runId}@foodranker.test`);\r",
+                  "\r",
+                  "pm.environment.unset(\"adminId\");\r",
+                  "pm.environment.unset(\"adminToken\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{authBaseUrl}}/health",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Register Admin Successfully",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar datos del admin\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(json.email).to.eql(pm.environment.get(\"adminEmail\"));\r",
+                  "  pm.expect(json.role).to.eql(\"admin\");\r",
+                  "  pm.expect(json.emailVerified).to.eql(true);\r",
+                  "\r",
+                  "  pm.environment.set(\"adminId\", json.id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/register/admin",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "register",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Login Admin Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar un token\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"token\");\r",
+                  "  pm.expect(json.token).to.be.a(\"string\");\r",
+                  "  pm.expect(json.token.length).to.be.greaterThan(20);\r",
+                  "\r",
+                  "  pm.environment.set(\"adminToken\", json.token);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/login",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Register Admin Duplicate Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que el usuario ya existe\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Usuario ya existe\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/register/admin",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "register",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Register Admin Wrong Secret",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 403\", function () {\r",
+                  "  pm.response.to.have.status(403);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar acceso denegado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Acceso denegado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-admin-secret",
+                "value": "wrong-secret",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"admin.wrong.{{runId}}@foodranker.test\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/register/admin",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "register",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Login Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar credenciales inválidas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Credenciales inválidas\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{adminEmail}}\",\r\n  \"password\": \"Wrong123!\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/login",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Login Unknown User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar usuario no encontrado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Usuario no encontrado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{unknownEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/login",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Login Invalid Email Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar error de validación\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Ingresa un correo válido\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"correo-invalido\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/login",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Ban User Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba sin token\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/users/{{adminId}}/ban",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Ban User With Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar token inválido\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Token inválido\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token-falso",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/users/{{adminId}}/ban",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 - Ban Admin Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no se puede banear a un administrador\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No se puede banear a un administrador\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"Prueba con token inválido\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/users/{{adminId}}/ban",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{adminId}}",
+                "ban"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Forgot Password Unknown User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no existe cuenta registrada\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No existe una cuenta registrada con ese correo\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{unknownEmail}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/forgot-password",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "forgot-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - User Service",
+      "item": [
+        {
+          "name": "01 - Get My Profile Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el perfil del usuario autenticado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"authId\");\r",
+                  "  pm.expect(json.authId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json).to.have.property(\"email\");\r",
+                  "  pm.expect(json).to.have.property(\"name\");\r",
+                  "  pm.expect(json).to.have.property(\"avatar\");\r",
+                  "  pm.expect(json).to.have.property(\"bio\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/me",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Get My Profile Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/me",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Get My Profile With Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar token inválido\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Token inválido\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer token-falso",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/me",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Update My Profile Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe actualizar los datos del perfil\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"authId\");\r",
+                  "  pm.expect(json.authId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.name).to.eql(pm.environment.get(\"profileName\"));\r",
+                  "  pm.expect(json.bio).to.eql(pm.environment.get(\"profileBio\"));\r",
+                  "  pm.expect(json.avatar).to.eql(pm.environment.get(\"profileAvatar\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"{{profileName}}\",\r\n  \"bio\": \"{{profileBio}}\",\r\n  \"avatar\": \"{{profileAvatar}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/me",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Update My Profile Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"No autorizado\",\r\n  \"bio\": \"Este cambio no debería permitirse\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/me",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Get Public Profile Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el perfil público\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"authId\");\r",
+                  "  pm.expect(json.authId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.name).to.eql(pm.environment.get(\"profileName\"));\r",
+                  "  pm.expect(json.avatar).to.eql(pm.environment.get(\"profileAvatar\"));\r",
+                  "  pm.expect(json.bio).to.eql(pm.environment.get(\"profileBio\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{adminId}}/profile",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{adminId}}",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Get Public Profile Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 404\", function () {\r",
+                  "  pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar usuario no encontrado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Usuario no encontrado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{fakeUserId}}/profile",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{fakeUserId}}",
+                "profile"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Get Users Batch Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el usuario dentro del lote\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  const adminId = pm.environment.get(\"adminId\");\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(adminId);\r",
+                  "  pm.expect(json[adminId]).to.have.property(\"name\");\r",
+                  "  pm.expect(json[adminId]).to.have.property(\"avatar\");\r",
+                  "  pm.expect(json[adminId].name).to.eql(pm.environment.get(\"profileName\"));\r",
+                  "  pm.expect(json[adminId].avatar).to.eql(pm.environment.get(\"profileAvatar\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ids\": [\"{{adminId}}\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/internal/batch",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "batch"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Get Users Batch Empty Ids",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar un objeto vacío\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"object\");\r",
+                  "  pm.expect(Object.keys(json).length).to.eql(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ids\": []\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/internal/batch",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "batch"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
