@@ -1,13 +1,18 @@
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: foodrank#27
+      MONGO_INITDB_ROOT_PASSWORD: moodRank$2019
     ports:
       - "27017:27017"
     networks:
       - micro-network
 
   postgres:
-    image: postgres:latest
+    image: postgres:16
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -15,10 +20,11 @@ services:
       - "5432:5432"
     volumes:
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - micro-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,13 +32,14 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
+    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"
     networks:
       - micro-network
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,6 +47,7 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -47,16 +55,19 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
+    volumes:
+      - minio_data:/data
     networks:
       - micro-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
   auth-service:
     build: ./auth-service
+    restart: unless-stopped
     ports:
       - "3000:3000"
     env_file:
@@ -71,6 +82,7 @@ services:
 
   user-service:
     build: ./user-service
+    restart: unless-stopped
     ports:
       - "3001:3001"
     env_file:
@@ -85,6 +97,7 @@ services:
 
   restaurant-service:
     build: ./restaurant-service
+    restart: unless-stopped
     ports:
       - "3003:3003"
     env_file:
@@ -101,6 +114,7 @@ services:
 
   review-service:
     build: ./review-service
+    restart: unless-stopped
     ports:
       - "3004:3004"
     env_file:
@@ -117,6 +131,7 @@ services:
 
   media-service:
     build: ./media-service
+    restart: unless-stopped
     ports:
       - "50051:50051"
       - "3005:3005"
@@ -130,6 +145,7 @@ services:
 
   social-service:
     build: ./social-service
+    restart: unless-stopped
     ports:
       - "3006:3006"
     env_file:
@@ -146,6 +162,7 @@ services:
 
   notification-service:
     build: ./notification-service
+    restart: unless-stopped
     ports:
       - "3007:3007"
     env_file:
@@ -160,6 +177,21 @@ services:
     networks:
       - micro-network
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token TU_TOKEN_AQUI
+    depends_on:
+      - auth-service
+      - user-service
+      - restaurant-service
+    networks:
+      - micro-network
+
 networks:
   micro-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:
