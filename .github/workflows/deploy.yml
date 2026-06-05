@@ -1,0 +1,60 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, rpi5]
+    timeout-minutes: 15
+
+    steps:
+      - name: Pull latest code
+        run: |
+          cd /home/gio/API-Reviews
+          git pull origin main
+
+      - name: Build and restart services
+        run: |
+          cd /home/gio/API-Reviews
+          docker compose up -d --build
+
+      - name: Prune old images
+        run: docker image prune -f
+
+      - name: Wait for services to be ready
+        run: sleep 20
+
+      - name: Healthcheck — containers status
+        run: |
+          cd /home/gio/API-Reviews
+          UNHEALTHY=$(docker compose ps --format json \
+            | python3 -c "
+          import sys, json
+          services = [json.loads(l) for l in sys.stdin if l.strip()]
+          bad = [s['Service'] for s in services if s.get('State') != 'running']
+          if bad:
+              print('DOWN: ' + ', '.join(bad))
+              exit(1)
+          print('All containers running')
+          ")
+          echo "$UNHEALTHY"
+
+      - name: Healthcheck — auth-service
+        run: |
+          curl -sf --max-time 5 http://localhost:3000/health \
+            && echo "auth-service OK" \
+            || { echo "auth-service FAILED"; exit 1; }
+
+      - name: Healthcheck — restaurant-service
+        run: |
+          curl -sf --max-time 5 http://localhost:3003/api/restaurants/health \
+            && echo "restaurant-service OK" \
+            || { echo "restaurant-service FAILED"; exit 1; }
+
+      - name: Healthcheck — review-service
+        run: |
+          curl -sf --max-time 5 http://localhost:3004/api/reviews/health \
+            && echo "review-service OK" \
+            || { echo "review-service FAILED"; exit 1; }

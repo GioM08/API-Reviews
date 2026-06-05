@@ -1,3 +1,5 @@
+name: api-reviews
+
 services:
   mongo:
     image: mongo:7
