@@ -40,8 +40,41 @@ const publishUserCreatedSafely = async (user) => {
 const register = async ({ email, password }, role = "user") => {
   const normalizedEmail = normalizeEmail(email);
 
-  const exists = await Auth.findOne({ email: normalizedEmail });
-  if (exists) throw new Error("Usuario ya existe");
+  const exists = await Auth.findOne({ email: normalizedEmail }).select("+verificationCodeHash");
+  if (exists) {
+    if (exists.emailVerified) throw new Error("Usuario ya existe");
+
+    if (exists.verificationCodeSentAt) {
+      const secondsSince = Math.floor((Date.now() - exists.verificationCodeSentAt.getTime()) / 1000);
+      if (secondsSince < RESEND_COOLDOWN_SECONDS) {
+        throw new Error(
+          `Ya tienes una cuenta pendiente de verificación. Revisa tu correo o espera ${RESEND_COOLDOWN_SECONDS - secondsSince} segundos para solicitar un nuevo código.`
+        );
+      }
+    }
+
+    const code = generateVerificationCode();
+    const codeHash = await bcrypt.hash(code, 10);
+
+    try {
+      await sendVerificationCode(exists.email, code);
+    } catch (error) {
+      throw new Error("No se pudo enviar el correo de verificación");
+    }
+
+    exists.verificationCodeHash = codeHash;
+    exists.verificationCodeExpiresAt = new Date(Date.now() + CODE_EXPIRES_MINUTES * 60 * 1000);
+    exists.verificationCodeSentAt = new Date();
+    await exists.save();
+
+    return {
+      id: exists._id,
+      email: exists.email,
+      role: exists.role,
+      emailVerified: false,
+      message: "Ya tienes una cuenta pendiente de verificación. Te hemos reenviado el código a tu correo."
+    };
+  }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -179,12 +212,17 @@ const resendVerificationCode = async ({ email }) => {
   const code = generateVerificationCode();
   const codeHash = await bcrypt.hash(code, 10);
 
+  try {
+    await sendVerificationCode(user.email, code);
+  } catch (error) {
+    throw new Error("No se pudo enviar el correo de verificación");
+  }
+
   user.verificationCodeHash = codeHash;
   user.verificationCodeExpiresAt = new Date(Date.now() + CODE_EXPIRES_MINUTES * 60 * 1000);
   user.verificationCodeSentAt = new Date();
 
   await user.save();
-  await sendVerificationCode(user.email, code);
 
   return {
     emailVerified: false,
