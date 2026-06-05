@@ -23,38 +23,69 @@ jobs:
       - name: Prune old images
         run: docker image prune -f
 
-      - name: Wait for services to be ready
-        run: sleep 20
-
-      - name: Healthcheck — containers status
+      - name: Healthcheck — all containers running
+        working-directory: /home/gio/API-Reviews
         run: |
-          cd /home/gio/API-Reviews
-          UNHEALTHY=$(docker compose ps --format json \
-            | python3 -c "
+          echo "Waiting up to 60s for containers to stabilise..."
+          for i in $(seq 1 12); do
+            NOT_RUNNING=$(docker compose ps --format json \
+              | python3 -c "
           import sys, json
-          services = [json.loads(l) for l in sys.stdin if l.strip()]
-          bad = [s['Service'] for s in services if s.get('State') != 'running']
-          if bad:
-              print('DOWN: ' + ', '.join(bad))
-              exit(1)
-          print('All containers running')
+          lines = [l for l in sys.stdin if l.strip()]
+          bad = [json.loads(l)['Service'] for l in lines if json.loads(l).get('State') != 'running']
+          print(' '.join(bad))
           ")
-          echo "$UNHEALTHY"
+            if [ -z "$NOT_RUNNING" ]; then
+              echo "All containers running after $((i * 5))s"
+              break
+            fi
+            if [ "$i" -eq 12 ]; then
+              echo "FAILED — containers not running after 60s: $NOT_RUNNING"
+              docker compose ps
+              exit 1
+            fi
+            echo "Attempt $i/12 — not ready yet: $NOT_RUNNING — retrying in 5s..."
+            sleep 5
+          done
 
-      - name: Healthcheck — auth-service
+      - name: Healthcheck — auth-service (/api/auth/health)
+        working-directory: /home/gio/API-Reviews
         run: |
-          curl -sf --max-time 5 http://localhost:3000/health \
-            && echo "auth-service OK" \
-            || { echo "auth-service FAILED"; exit 1; }
+          for i in $(seq 1 6); do
+            if docker compose exec -T auth-service \
+                curl -sf --max-time 5 http://localhost:3000/api/auth/health; then
+              echo "auth-service OK"
+              break
+            fi
+            if [ "$i" -eq 6 ]; then echo "auth-service FAILED after 30s"; exit 1; fi
+            echo "Attempt $i/6 — retrying in 5s..."
+            sleep 5
+          done
 
-      - name: Healthcheck — restaurant-service
+      - name: Healthcheck — restaurant-service (/api/restaurants/health)
+        working-directory: /home/gio/API-Reviews
         run: |
-          curl -sf --max-time 5 http://localhost:3003/api/restaurants/health \
-            && echo "restaurant-service OK" \
-            || { echo "restaurant-service FAILED"; exit 1; }
+          for i in $(seq 1 6); do
+            if docker compose exec -T restaurant-service \
+                curl -sf --max-time 5 http://localhost:3003/api/restaurants/health; then
+              echo "restaurant-service OK"
+              break
+            fi
+            if [ "$i" -eq 6 ]; then echo "restaurant-service FAILED after 30s"; exit 1; fi
+            echo "Attempt $i/6 — retrying in 5s..."
+            sleep 5
+          done
 
-      - name: Healthcheck — review-service
+      - name: Healthcheck — review-service (/api/reviews/health)
+        working-directory: /home/gio/API-Reviews
         run: |
-          curl -sf --max-time 5 http://localhost:3004/api/reviews/health \
-            && echo "review-service OK" \
-            || { echo "review-service FAILED"; exit 1; }
+          for i in $(seq 1 6); do
+            if docker compose exec -T review-service \
+                curl -sf --max-time 5 http://localhost:3004/api/reviews/health; then
+              echo "review-service OK"
+              break
+            fi
+            if [ "$i" -eq 6 ]; then echo "review-service FAILED after 30s"; exit 1; fi
+            echo "Attempt $i/6 — retrying in 5s..."
+            sleep 5
+          done
