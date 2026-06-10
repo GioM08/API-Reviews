@@ -4,9 +4,13 @@ const cors = require("cors");
 const { uploadToStorage } = require("./services/media.service");
 
 const createApp = () => {
-  const upload = multer({ storage: multer.memoryStorage() });
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  });
   const app = express();
 
+  app.disable("x-powered-by");
   app.use(cors());
 
   app.post("/upload", upload.single("file"), async (req, res) => {

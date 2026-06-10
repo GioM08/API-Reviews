@@ -43,7 +43,7 @@ const fetchNearbyPlaces = async (lat, lng, radius = 2000) => {
   const data = await response.json();
 
   return data.elements
-    .filter(el => el.tags && el.tags.name)
+    .filter(el => el.tags?.name)
     .map(el => ({
       osm_id: el.id,
       name: el.tags.name,

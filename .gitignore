@@ -31,3 +31,7 @@ Thumbs.db
 # --- Test coverage ---
 coverage/
 */coverage/
+
+# --- SonarQube ---
+.scannerwork/
+*/.scannerwork/

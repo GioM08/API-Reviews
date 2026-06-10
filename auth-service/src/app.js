@@ -36,6 +36,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 dotenv.config();
 
 const app = express();
+app.disable("x-powered-by");
 app.use(cors());
 
 
