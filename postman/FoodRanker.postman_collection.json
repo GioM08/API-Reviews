@@ -1110,6 +1110,2855 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "03 - Restaurant Service",
+      "item": [
+        {
+          "name": "00 - Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"status\");\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/health",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Get Categories Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar un arreglo de categorías\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "  pm.expect(json.length).to.be.greaterThan(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe incluir la categoría Restaurante\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.include(\"Restaurante\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/categories",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Get Restaurants Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar un arreglo de restaurantes\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe incluir el restaurante de prueba\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  const restaurantId = Number(pm.environment.get(\"restaurantId\"));\r",
+                  "\r",
+                  "  const restaurant = json.find(item => Number(item.id) === restaurantId);\r",
+                  "\r",
+                  "  pm.expect(restaurant).to.exist;\r",
+                  "  pm.expect(restaurant.name).to.eql(pm.environment.get(\"restaurantName\"));\r",
+                  "  pm.expect(restaurant.category).to.eql(pm.environment.get(\"restaurantCategory\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Get Restaurant By Id Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el restaurante solicitado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(Number(json.id)).to.eql(Number(pm.environment.get(\"restaurantId\")));\r",
+                  "  pm.expect(json.name).to.eql(pm.environment.get(\"restaurantName\"));\r",
+                  "  pm.expect(json.category).to.eql(pm.environment.get(\"restaurantCategory\"));\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe contener campos principales del restaurante\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"address\");\r",
+                  "  pm.expect(json).to.have.property(\"score\");\r",
+                  "  pm.expect(json).to.have.property(\"review_count\");\r",
+                  "  pm.expect(json).to.have.property(\"google_rating\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/{{restaurantId}}",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "{{restaurantId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Get Restaurant By Id Not Found",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/{{missingRestaurantId}}",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "{{missingRestaurantId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Get Restaurant Photo Not Available",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 404\", function () {\r",
+                  "  pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que la foto no está disponible\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Foto no disponible\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/{{restaurantId}}/photo",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "{{restaurantId}}",
+                "photo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Get Restaurant Photo Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 404\", function () {\r",
+                  "  pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que la foto no está disponible\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Foto no disponible\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{restaurantBaseUrl}}/{{missingRestaurantId}}/photo",
+              "host": [
+                "{{restaurantBaseUrl}}"
+              ],
+              "path": [
+                "{{missingRestaurantId}}",
+                "photo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Review Service",
+      "item": [
+        {
+          "name": "00 - Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"status\");\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/health",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Get Report Reasons Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar razones de reporte\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"reasons\");\r",
+                  "  pm.expect(json.reasons).to.be.an(\"array\");\r",
+                  "  pm.expect(json.reasons).to.include(\"spam\");\r",
+                  "  pm.expect(json.reasons).to.include(\"other\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/report-reasons",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "report-reasons"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Get Reviews Without Filters Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que se requiere restaurantId o userId\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Se requiere restaurantId o userId\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Create Review Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"restaurantId\": 900001,\r\n  \"stars\": 5,\r\n  \"comment\": \"No debería crearse sin token\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Create Review Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe crear una reseña\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(Number(json.restaurant_id)).to.eql(Number(pm.environment.get(\"restaurantId\")));\r",
+                  "  pm.expect(json.user_id).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.stars).to.be.within(1, 5);\r",
+                  "  pm.expect(json.comment).to.eql(pm.environment.get(\"reviewComment\"));\r",
+                  "  pm.expect(json).to.have.property(\"media\");\r",
+                  "\r",
+                  "  pm.environment.set(\"reviewId\", json.id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"restaurantId\": 900001,\r\n  \"stars\": 5,\r\n  \"comment\": \"{{reviewComment}}\",\r\n  \"context\": {\r\n    \"moment\": \"dinner\",\r\n    \"company\": \"friends\",\r\n    \"when\": \"weekend\",\r\n    \"price_range\": \"100-200\"\r\n  },\r\n  \"detailed_ratings\": {\r\n    \"service\": 5,\r\n    \"food\": 5,\r\n    \"cleanliness\": 4\r\n  },\r\n  \"amenities\": [\"wifi\", \"parking\"],\r\n  \"media\": []\r\n}"
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Create Duplicate Review Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que solo se puede reseñar una vez por semana\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Solo puedes reseñar este restaurante una vez por semana\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"restaurantId\": 900001,\r\n  \"stars\": 4,\r\n  \"comment\": \"Reseña duplicada\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Get Reviews By Restaurant Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar reseñas del restaurante\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  const reviewId = Number(pm.environment.get(\"reviewId\"));\r",
+                  "  const review = json.find(item => Number(item.id) === reviewId);\r",
+                  "\r",
+                  "  pm.expect(review).to.exist;\r",
+                  "  pm.expect(Number(review.restaurant_id)).to.eql(Number(pm.environment.get(\"restaurantId\")));\r",
+                  "  pm.expect(review.user_id).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}?restaurantId={{restaurantId}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "restaurantId",
+                  "value": "{{restaurantId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Get Reviews By User Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar reseñas del usuario\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  const reviewId = Number(pm.environment.get(\"reviewId\"));\r",
+                  "  const review = json.find(item => Number(item.id) === reviewId);\r",
+                  "\r",
+                  "  pm.expect(review).to.exist;\r",
+                  "  pm.expect(review.user_id).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}?userId={{adminId}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{adminId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Get Restaurant Stats Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar estadísticas del restaurante\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"detailed_ratings_avg\");\r",
+                  "  pm.expect(json).to.have.property(\"amenities_stats\");\r",
+                  "  pm.expect(json.detailed_ratings_avg).to.be.an(\"object\");\r",
+                  "  pm.expect(json.amenities_stats).to.be.an(\"object\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/restaurant/{{restaurantId}}/stats",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "restaurant",
+                "{{restaurantId}}",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Get Segmented Scores Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar puntajes segmentados\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  if (json.length > 0) {\r",
+                  "    pm.expect(json[0]).to.have.property(\"avg_score\");\r",
+                  "    pm.expect(json[0]).to.have.property(\"review_count\");\r",
+                  "  }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/restaurant/{{restaurantId}}/segmented",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "restaurant",
+                "{{restaurantId}}",
+                "segmented"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 - Vote Review Up Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe registrar voto positivo\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(Number(json.id)).to.eql(Number(pm.environment.get(\"reviewId\")));\r",
+                  "  pm.expect(Number(json.upvotes)).to.be.greaterThan(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"voteType\": \"up\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/vote",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "vote"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Vote Review Duplicate Up Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que ya votó de esta forma\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Ya votaste de esta forma\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"voteType\": \"up\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/vote",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "vote"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12 - Like Review Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe activar like\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"liked\");\r",
+                  "  pm.expect(json.liked).to.eql(true);\r",
+                  "  pm.expect(json).to.have.property(\"likes_count\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/like",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13 - Unlike Review Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe desactivar like\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"liked\");\r",
+                  "  pm.expect(json.liked).to.eql(false);\r",
+                  "  pm.expect(json).to.have.property(\"likes_count\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/like",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "14 - Add Comment Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe crear comentario\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(Number(json.review_id)).to.eql(Number(pm.environment.get(\"reviewId\")));\r",
+                  "  pm.expect(json.user_id).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.text).to.eql(pm.environment.get(\"reviewCommentText\"));\r",
+                  "\r",
+                  "  pm.environment.set(\"commentId\", json.id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"text\": \"{{reviewCommentText}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/comments",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "15 - Get Comments Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar comentarios de la reseña\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  const commentId = Number(pm.environment.get(\"commentId\"));\r",
+                  "  const comment = json.find(item => Number(item.id) === commentId);\r",
+                  "\r",
+                  "  pm.expect(comment).to.exist;\r",
+                  "  pm.expect(comment.text).to.eql(pm.environment.get(\"reviewCommentText\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/comments",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "16 - Delete Comment Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar comentario eliminado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Comentario eliminado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/comments/{{commentId}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "comments",
+                "{{commentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "17 - Report Review Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar reseña reportada\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Reseña reportada\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"reason\": \"{{reviewReportReason}}\",\r\n  \"comment\": \"{{reviewReportComment}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/report",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "report"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "18 - Get Reported Reviews As Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar reseñas reportadas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  const reviewId = Number(pm.environment.get(\"reviewId\"));\r",
+                  "  const review = json.find(item => Number(item.id) === reviewId);\r",
+                  "\r",
+                  "  pm.expect(review).to.exist;\r",
+                  "  pm.expect(Number(review.report_count)).to.be.greaterThan(0);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/reported",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "reported"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "19 - Get Review Reports As Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/reports",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "reports"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "20 - Get Admin Stats Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar estadísticas administrativas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"reviews\");\r",
+                  "  pm.expect(json).to.have.property(\"reports\");\r",
+                  "  pm.expect(json).to.have.property(\"restaurants\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/admin/stats",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "21 - Hide Review As Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe ocultar la reseña\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(Number(json.id)).to.eql(Number(pm.environment.get(\"reviewId\")));\r",
+                  "  pm.expect(json.hidden).to.eql(true);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/hide",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "hide"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "22 - Unhide Review As Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe mostrar la reseña nuevamente\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(Number(json.id)).to.eql(Number(pm.environment.get(\"reviewId\")));\r",
+                  "  pm.expect(json.hidden).to.eql(false);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}/unhide",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}",
+                "unhide"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "23 - Delete Review As Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar reseña eliminada\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Reseña eliminada\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{reviewBaseUrl}}/{{reviewId}}",
+              "host": [
+                "{{reviewBaseUrl}}"
+              ],
+              "path": [
+                "{{reviewId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Social Service",
+      "item": [
+        {
+          "name": "00 - Health Check and Social Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const runId = pm.environment.get(\"runId\") || Date.now();\r",
+                  "\r",
+                  "pm.environment.set(\"socialFriendEmail\", `friend.${runId}@foodranker.test`);\r",
+                  "\r",
+                  "const now = new Date();\r",
+                  "const planDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);\r",
+                  "\r",
+                  "pm.environment.set(\"planDate\", planDate.toISOString());\r",
+                  "\r",
+                  "pm.environment.unset(\"socialFriendId\");\r",
+                  "pm.environment.unset(\"socialFriendToken\");\r",
+                  "pm.environment.unset(\"planId\");\r",
+                  "pm.environment.unset(\"planETag\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"status\");\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{socialBaseUrl}}/health",
+              "host": [
+                "{{socialBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Register Social Friend Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe crear el usuario amigo\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"id\");\r",
+                  "  pm.expect(json.email).to.eql(pm.environment.get(\"socialFriendEmail\"));\r",
+                  "\r",
+                  "  pm.environment.set(\"socialFriendId\", json.id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-admin-secret",
+                "value": "{{adminSecret}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{socialFriendEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/register/admin",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "register",
+                "admin"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Login Social Friend Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar token del amigo\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"token\");\r",
+                  "  pm.expect(json.token).to.be.a(\"string\");\r",
+                  "  pm.expect(json.token.length).to.be.greaterThan(20);\r",
+                  "\r",
+                  "  pm.environment.set(\"socialFriendToken\", json.token);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"{{socialFriendEmail}}\",\r\n  \"password\": \"{{testPassword}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{authBaseUrl}}/login",
+              "host": [
+                "{{authBaseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Get Friends Without Token Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{friendsBaseUrl}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Get Friendship Status None",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no existe amistad\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"status\");\r",
+                  "  pm.expect(json.status).to.eql(\"none\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{friendsBaseUrl}}/status/{{socialFriendId}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ],
+              "path": [
+                "status",
+                "{{socialFriendId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Send Friendship Request Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe crear solicitud pendiente\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json.requesterId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.recipientId).to.eql(pm.environment.get(\"socialFriendId\"));\r",
+                  "  pm.expect(json.status).to.eql(\"pending\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{friendsBaseUrl}}/request/{{socialFriendId}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ],
+              "path": [
+                "request",
+                "{{socialFriendId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Duplicate Friendship Request Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que ya hay solicitud pendiente\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Ya hay una solicitud pendiente\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{friendsBaseUrl}}/request/{{socialFriendId}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ],
+              "path": [
+                "request",
+                "{{socialFriendId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Accept Friendship As Friend",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe aceptar la amistad\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json.requesterId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.recipientId).to.eql(pm.environment.get(\"socialFriendId\"));\r",
+                  "  pm.expect(json.status).to.eql(\"accepted\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{socialFriendToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{friendsBaseUrl}}/accept/{{adminId}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ],
+              "path": [
+                "accept",
+                "{{adminId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Get My Friends Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar al amigo aceptado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "\r",
+                  "  const friend = json.find(item => item.userId === pm.environment.get(\"socialFriendId\"));\r",
+                  "\r",
+                  "  pm.expect(friend).to.exist;\r",
+                  "  pm.expect(friend.userId).to.eql(pm.environment.get(\"socialFriendId\"));\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{friendsBaseUrl}}",
+              "host": [
+                "{{friendsBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Create Plan Without Token Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"restaurantId\": 900001,\r\n  \"restaurantName\": \"Restaurante Newman\",\r\n  \"participantIds\": [\"{{socialFriendId}}\"],\r\n  \"proposedDate\": \"{{planDate}}\",\r\n  \"context\": {\r\n    \"moment\": \"dinner\",\r\n    \"when\": \"weekend\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{plansBaseUrl}}",
+              "host": [
+                "{{plansBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 - Create Plan Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 201\", function () {\r",
+                  "  pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe crear el plan\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"_id\");\r",
+                  "  pm.expect(Number(json.restaurantId)).to.eql(Number(pm.environment.get(\"restaurantId\")));\r",
+                  "  pm.expect(json.restaurantName).to.eql(pm.environment.get(\"restaurantName\"));\r",
+                  "  pm.expect(json.proposerId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(json.status).to.eql(\"proposed\");\r",
+                  "  pm.expect(json.participants).to.be.an(\"array\");\r",
+                  "\r",
+                  "  pm.environment.set(\"planId\", json._id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"restaurantId\": 900001,\r\n  \"restaurantName\": \"Restaurante Newman\",\r\n  \"participantIds\": [\"{{socialFriendId}}\"],\r\n  \"proposedDate\": \"{{planDate}}\",\r\n  \"context\": {\r\n    \"moment\": \"dinner\",\r\n    \"when\": \"weekend\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{plansBaseUrl}}",
+              "host": [
+                "{{plansBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 - Get Plan By Id Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el plan y guardar ETag\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  const etag = pm.response.headers.get(\"ETag\");\r",
+                  "\r",
+                  "  pm.expect(json._id).to.eql(pm.environment.get(\"planId\"));\r",
+                  "  pm.expect(json.proposerId).to.eql(pm.environment.get(\"adminId\"));\r",
+                  "  pm.expect(etag).to.exist;\r",
+                  "\r",
+                  "  pm.environment.set(\"planETag\", etag);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{plansBaseUrl}}/{{planId}}",
+              "host": [
+                "{{plansBaseUrl}}"
+              ],
+              "path": [
+                "{{planId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12 - Accept Plan As Friend Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe aceptar el plan\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  const etag = pm.response.headers.get(\"ETag\");\r",
+                  "\r",
+                  "  const participant = json.participants.find(item => item.userId === pm.environment.get(\"socialFriendId\"));\r",
+                  "\r",
+                  "  pm.expect(participant).to.exist;\r",
+                  "  pm.expect(participant.status).to.eql(\"accepted\");\r",
+                  "  pm.expect(json.status).to.eql(\"accepted\");\r",
+                  "  pm.expect(etag).to.exist;\r",
+                  "\r",
+                  "  pm.environment.set(\"planETag\", etag);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{socialFriendToken}}",
+                "type": "text"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{planETag}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{plansBaseUrl}}/{{planId}}/accept",
+              "host": [
+                "{{plansBaseUrl}}"
+              ],
+              "path": [
+                "{{planId}}",
+                "accept"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13 - Complete Plan As Proposer Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe completar el plan\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "  const etag = pm.response.headers.get(\"ETag\");\r",
+                  "\r",
+                  "  pm.expect(json._id).to.eql(pm.environment.get(\"planId\"));\r",
+                  "  pm.expect(json.status).to.eql(\"completed\");\r",
+                  "  pm.expect(json.completedAt).to.exist;\r",
+                  "  pm.expect(etag).to.exist;\r",
+                  "\r",
+                  "  pm.environment.set(\"planETag\", etag);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{planETag}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{plansBaseUrl}}/{{planId}}/complete",
+              "host": [
+                "{{plansBaseUrl}}"
+              ],
+              "path": [
+                "{{planId}}",
+                "complete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Notification Service",
+      "item": [
+        {
+          "name": "00 - Health Check and Notification Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const runId = pm.environment.get(\"runId\") || Date.now();\r",
+                  "\r",
+                  "pm.environment.set(\"notificationDeviceToken\", `newman-device-token-${runId}`);\r",
+                  "\r",
+                  "pm.environment.unset(\"notificationId\");\r",
+                  "pm.environment.unset(\"notificationUnreadCount\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe responder status ok\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"status\");\r",
+                  "  pm.expect(json.status).to.eql(\"ok\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notificationBaseUrl}}/health",
+              "host": [
+                "{{notificationBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Get Notifications Without Token Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 401\", function () {\r",
+                  "  pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar no autorizado\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No autorizado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Register Device Token Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe registrar el token\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Token registrado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"{{notificationDeviceToken}}\",\r\n  \"platform\": \"web\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/token",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Register Device Token Missing Token Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar token requerido\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Token requerido\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"platform\": \"web\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/token",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Get My Notifications Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar notificaciones del usuario\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.be.an(\"array\");\r",
+                  "  pm.expect(json.length).to.be.greaterThan(0);\r",
+                  "\r",
+                  "  const notification = json[0];\r",
+                  "\r",
+                  "  pm.expect(notification).to.have.property(\"_id\");\r",
+                  "  pm.expect(notification).to.have.property(\"userId\");\r",
+                  "  pm.expect(notification).to.have.property(\"type\");\r",
+                  "  pm.expect(notification).to.have.property(\"title\");\r",
+                  "  pm.expect(notification).to.have.property(\"read\");\r",
+                  "\r",
+                  "  pm.environment.set(\"notificationId\", notification._id);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Get Unread Count Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar contador de no leídas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"count\");\r",
+                  "  pm.expect(json.count).to.be.a(\"number\");\r",
+                  "\r",
+                  "  pm.environment.set(\"notificationUnreadCount\", json.count);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/unread-count",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "unread-count"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 - Mark Notification As Read Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe marcar la notificación como leída\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"_id\");\r",
+                  "  pm.expect(json._id).to.eql(pm.environment.get(\"notificationId\"));\r",
+                  "  pm.expect(json.read).to.eql(true);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/{{notificationId}}/read",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "{{notificationId}}",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Mark Notification Not Found Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 404\", function () {\r",
+                  "  pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar notificación no encontrada\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"Notificación no encontrada\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/000000000000000000000000/read",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "000000000000000000000000",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Mark All Notifications As Read Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que todas fueron marcadas como leídas\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Todas las notificaciones marcadas como leídas\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/read-all",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "read-all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 - Remove Device Token Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe eliminar el token\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"message\");\r",
+                  "  pm.expect(json.message).to.include(\"Token eliminado\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"token\": \"{{notificationDeviceToken}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{notificationsBaseUrl}}/token",
+              "host": [
+                "{{notificationsBaseUrl}}"
+              ],
+              "path": [
+                "token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Media Service",
+      "item": [
+        {
+          "name": "00 - Media Setup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.unset(\"mediaUrl\");\r",
+                  "pm.environment.unset(\"mediaFilename\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 400\", function () {\r",
+                  "  pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe indicar que no se envió archivo\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"error\");\r",
+                  "  pm.expect(json.error).to.include(\"No file provided\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{mediaUploadUrl}}",
+              "host": [
+                "{{mediaUploadUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "01 - Upload File Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe subir el archivo y regresar datos\", function () {\r",
+                  "  const json = pm.response.json();\r",
+                  "\r",
+                  "  pm.expect(json).to.have.property(\"url\");\r",
+                  "  pm.expect(json).to.have.property(\"filename\");\r",
+                  "\r",
+                  "  pm.expect(json.url).to.be.a(\"string\");\r",
+                  "  pm.expect(json.filename).to.be.a(\"string\");\r",
+                  "\r",
+                  "  pm.expect(json.url).to.include(\"http://localhost:9000/media/\");\r",
+                  "  pm.expect(json.filename).to.include(\".txt\");\r",
+                  "\r",
+                  "  pm.environment.set(\"mediaUrl\", json.url);\r",
+                  "  pm.environment.set(\"mediaFilename\", json.filename);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "aaa02590-12ee-4dea-aed0-2ee5d860049c",
+                  "src": "/C:/Users/reino/Desktop/Sistemas en red/repoProyectoFinal/API-Reviews/postman/fixtures/newman-media.txt"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{mediaUploadUrl}}",
+              "host": [
+                "{{mediaUploadUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Get Uploaded File From MinIO Successfully",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 200\", function () {\r",
+                  "  pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe regresar el archivo subido\", function () {\r",
+                  "  pm.expect(pm.response.text()).to.include(\"Archivo de prueba para Media Service desde Newman\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mediaUrl}}",
+              "host": [
+                "{{mediaUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Upload Endpoint With GET Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe responder 404\", function () {\r",
+                  "  pm.response.to.have.status(404);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mediaUploadUrl}}",
+              "host": [
+                "{{mediaUploadUrl}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

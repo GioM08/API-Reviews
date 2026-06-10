@@ -1,92 +1,278 @@
 {
-  "id": "aa95c65e-0f3c-42e7-b868-af07a10c92e6",
-  "name": "FoodRanker Local",
-  "values": [
-    {
-      "key": "authBaseUrl",
-      "value": "http://localhost:3000/api/auth",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "adminSecret",
-      "value": "R00tS3cr3t",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "testPassword",
-      "value": "Test12345!",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "newPassword",
-      "value": "NewTest12345!",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "runId",
-      "value": "",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "adminEmail",
-      "value": "",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "unknownEmail",
-      "value": "",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "adminId",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-    {
-      "key": "adminToken",
-      "value": "",
-      "type": "any",
-      "enabled": true
-    },
-	{
-	"key": "userBaseUrl",
-	"value": "http://localhost:3001/api/users",
-	"type": "default",
-	"enabled": true
-	},
-	{
-	"key": "profileName",
-	"value": "Usuario Newman",
-	"type": "default",
-	"enabled": true
-	},
-	{
-	"key": "profileBio",
-	"value": "Perfil actualizado desde pruebas automatizadas con Newman",
-	"type": "default",
-	"enabled": true
-	},
-	{
-	"key": "profileAvatar",
-	"value": "newman-avatar.png",
-	"type": "default",
-	"enabled": true
-	},
-	{
-	"key": "fakeUserId",
-	"value": "000000000000000000000000",
-	"type": "default",
-	"enabled": true
-	}
-  ],
-  "color": 0,
-  "_postman_variable_scope": "environment"
+"id": "aa95c65e-0f3c-42e7-b868-af07a10c92e6",
+"name": "FoodRanker Local",
+"values": [
+{
+"key": "authBaseUrl",
+"value": "http://localhost:3000/api/auth",
+"type": "default",
+"enabled": true
+},
+{
+"key": "adminSecret",
+"value": "R00tS3cr3t",
+"type": "default",
+"enabled": true
+},
+{
+"key": "testPassword",
+"value": "Test12345!",
+"type": "default",
+"enabled": true
+},
+{
+"key": "newPassword",
+"value": "NewTest12345!",
+"type": "default",
+"enabled": true
+},
+{
+"key": "runId",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "adminEmail",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "unknownEmail",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "adminId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "adminToken",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "userBaseUrl",
+"value": "http://localhost:3001/api/users",
+"type": "default",
+"enabled": true
+},
+{
+"key": "profileName",
+"value": "Usuario Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "profileBio",
+"value": "Perfil actualizado desde pruebas automatizadas con Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "profileAvatar",
+"value": "newman-avatar.png",
+"type": "default",
+"enabled": true
+},
+{
+"key": "fakeUserId",
+"value": "000000000000000000000000",
+"type": "default",
+"enabled": true
+},
+{
+"key": "restaurantBaseUrl",
+"value": "http://localhost:3003/api/restaurants",
+"type": "default",
+"enabled": true
+},
+{
+"key": "restaurantId",
+"value": "900001",
+"type": "default",
+"enabled": true
+},
+{
+"key": "restaurantName",
+"value": "Restaurante Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "restaurantCategory",
+"value": "Restaurante",
+"type": "default",
+"enabled": true
+},
+{
+"key": "missingRestaurantId",
+"value": "999999999",
+"type": "default",
+"enabled": true
+},
+{
+"key": "reviewBaseUrl",
+"value": "http://localhost:3004/api/reviews",
+"type": "default",
+"enabled": true
+},
+{
+"key": "reviewId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "commentId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "reviewComment",
+"value": "Reseña creada desde pruebas automatizadas con Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "reviewCommentText",
+"value": "Comentario creado desde Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "reviewReportReason",
+"value": "spam",
+"type": "default",
+"enabled": true
+},
+{
+"key": "reviewReportComment",
+"value": "Reporte creado desde pruebas automatizadas",
+"type": "default",
+"enabled": true
+},
+{
+"key": "socialBaseUrl",
+"value": "http://localhost:3006",
+"type": "default",
+"enabled": true
+},
+{
+"key": "friendsBaseUrl",
+"value": "http://localhost:3006/api/friends",
+"type": "default",
+"enabled": true
+},
+{
+"key": "plansBaseUrl",
+"value": "http://localhost:3006/api/plans",
+"type": "default",
+"enabled": true
+},
+{
+"key": "socialFriendEmail",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "socialFriendId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "socialFriendToken",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "socialFriendName",
+"value": "Amigo Newman",
+"type": "default",
+"enabled": true
+},
+{
+"key": "planId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "planETag",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "planDate",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "notificationBaseUrl",
+"value": "http://localhost:3007",
+"type": "default",
+"enabled": true
+},
+{
+"key": "notificationsBaseUrl",
+"value": "http://localhost:3007/api/notifications",
+"type": "default",
+"enabled": true
+},
+{
+"key": "notificationDeviceToken",
+"value": "",
+"type": "default",
+"enabled": true
+},
+{
+"key": "notificationId",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "notificationUnreadCount",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "mediaBaseUrl",
+"value": "http://localhost:3005",
+"type": "default",
+"enabled": true
+},
+{
+"key": "mediaUploadUrl",
+"value": "http://localhost:3005/upload",
+"type": "default",
+"enabled": true
+},
+{
+"key": "mediaUrl",
+"value": "",
+"type": "any",
+"enabled": true
+},
+{
+"key": "mediaFilename",
+"value": "",
+"type": "any",
+"enabled": true
+}
+],
+"color": 0,
+"_postman_variable_scope": "environment"
 }

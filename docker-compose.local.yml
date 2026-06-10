@@ -1,0 +1,188 @@
+name: api-reviews-local
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    networks:
+      - micro-network
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres_data_local:/var/lib/postgresql/data
+    networks:
+      - micro-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-local
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - micro-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio-local
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data_local:/data
+    networks:
+      - micro-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build: ./auth-service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./auth-service/.env.local
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - micro-network
+
+  user-service:
+    build: ./user-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./user-service/.env.local
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - micro-network
+
+  restaurant-service:
+    build: ./restaurant-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./restaurant-service/.env.local
+    volumes:
+      - ./auth-service/keys/public.key:/app/keys/public.key:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - micro-network
+
+  review-service:
+    build: ./review-service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./review-service/.env.local
+    volumes:
+      - ./auth-service/keys/public.key:/app/keys/public.key:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - micro-network
+
+  media-service:
+    build: ./media-service
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+      - "3005:3005"
+    env_file:
+      - ./media-service/.env.local
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - micro-network
+
+  social-service:
+    build: ./social-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    env_file:
+      - ./social-service/.env.local
+    volumes:
+      - ./auth-service/keys/public.key:/app/keys/public.key:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - micro-network
+
+  notification-service:
+    build: ./notification-service
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    env_file:
+      - ./notification-service/.env.local
+    volumes:
+      - ./auth-service/keys/public.key:/app/keys/public.key:ro
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongo:
+        condition: service_started
+    networks:
+      - micro-network
+
+networks:
+  micro-network:
+    driver: bridge
+
+volumes:
+  postgres_data_local:
+  minio_data_local:
